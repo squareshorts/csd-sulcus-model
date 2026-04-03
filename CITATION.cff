@@ -16,8 +16,8 @@ authors:
     orcid: "https://orcid.org/0000-0002-2396-4019"
     affiliation: "Department of Nutrition, Federal University of Pernambuco (UFPE)"
     email: "guedes.rca@gmail.com"
-repository-code: "https://github.com/<owner>/csd-sulcus-model"
-url: "https://github.com/<owner>/csd-sulcus-model"
+repository-code: "https://github.com/squareshorts/csd-sulcus-model"
+url: "https://github.com/squareshorts/csd-sulcus-model"
 keywords:
   - cortical spreading depolarization
   - spreading depression

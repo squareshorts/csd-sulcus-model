@@ -1,0 +1,19 @@
+.pytest_cache/
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+.vendor/
+build/
+dist/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+pytest-cache-files-*/
+
+# Generated release noise we do not want in the public repo
+outputs/**/run.log

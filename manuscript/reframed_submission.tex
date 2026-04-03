@@ -1,0 +1,269 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{authblk}
+\usepackage{setspace}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage{booktabs}
+
+\geometry{margin=1in}
+\doublespacing
+\graphicspath{{figures/}}
+
+\newcommand{\ShortTitle}{Sulcal slowing in tensor CSD models}
+\newcommand{\TOCSummary}{Orientation-aware tensor coupling preserves sulcal slowing while reducing the magnitude predicted by isotropic scalar attenuation.}
+
+\title{Sulcal slowing of cortical spreading depolarization persists in tensor coupling models}
+
+\author[1]{Antonio Pereira\thanks{Correspondence: Antonio Pereira, \texttt{apereira@ufpa.br}; ORCID: 0000-0002-0808-1058.}}
+\author[2]{Rubem Guedes}
+
+\affil[1]{Institute of Technology, Federal University of Para (UFPA)}
+\affil[2]{Department of Nutrition, Federal University of Pernambuco (UFPE); \texttt{guedes.rca@gmail.com}; ORCID: 0000-0002-2396-4019}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\parbox{0.95\textwidth}{\small
+\textbf{Condensed title:} \ShortTitle\\
+\textbf{Summary:} \TOCSummary}
+\end{center}
+
+\begin{abstract}
+Cortical spreading depolarization (CSD) propagates through folded cortex at millimeters per minute, but whether sulcal slowing inferred from simplified models survives orientation-structured transport is unresolved. We simulated Barkley reaction--diffusion dynamics on a two-dimensional cortical sheet containing a curved sulcus and compared four localized coupling families: scalar-flat, scalar-Gaussian, tensor-flat, and tensor-Gaussian. In all families, the wavefront remained continuous and arrival times were delayed in sulcal relative to nonsulcal tissue, indicating that sulcal slowing is robust to model class. The magnitude of slowing, however, depended on transport structure. For a representative 4.0-mm sulcus with $g_{\mathrm{sulcus}}=0.75$, propagation speed was 2.582 and 2.618 mm/min in the scalar-flat and scalar-Gaussian models, compared with 2.689 and 2.718 mm/min in the matched tensor models. Across the sensitivity grid, tensor coupling increased propagation speed by 0.062 mm/min on average in the flat family and 0.057 mm/min in the Gaussian family relative to matched scalar cases. The strongest slowing occurred in the scalar-flat family at width 5.5 mm and $g_{\mathrm{sulcus}}=0.75$ ($\Delta v=-0.448$ mm/min). Thus, localized sulcal slowing persists when transport is made orientation-aware, but isotropic scalar attenuation overestimates its magnitude. These results support treating scalar attenuation as an upper-bound model and tensor coupling as a stricter mesoscale baseline for studying geometry-dependent CSD propagation.
+\end{abstract}
+
+\noindent \textbf{Keywords:} cortical spreading depolarization, sulcus, anisotropy, tensor diffusion, excitable media, cortical folding, model comparison
+
+\section{Introduction}
+
+Cortical spreading depolarization (CSD) is a propagating wave of near-complete depolarization of neurons and glia that travels across cortex at a few millimeters per minute and is relevant to migraine aura and acute brain injury \citep{Pietrobon2014,Ayata2015,Woitzik2013,Mathew2022}. At mesoscale resolution, however, the impact of cortical folding on CSD remains difficult to separate from cytoarchitecture, vascular effects, and measurement geometry. Sulci are especially important because they combine strong local curvature with abrupt changes in source orientation and extracellular field geometry \citep{Murakami2006,Ahlfors2010a,Ahlfors2010b,Muller2023,Reimann2022}.
+
+A minimal sulcal model can represent the fold as a compartment with reduced isotropic effective coupling. That approximation is useful, but it collapses two distinct geometric effects into one scalar field: a change in local coupling magnitude and a change in preferred transport orientation imposed by the fold. Work on EEG/MEG forward models has shown that local folding geometry and source orientation strongly affect mesoscale observables, including enhancement and cancellation profiles across gyri and sulci \citep{Ahlfors2010a,Ahlfors2010b,Irimia2012,Muller2023,Reimann2022}. That literature does not address CSD propagation directly, but it establishes the more general point that sulcal geometry is orientation-structured rather than geometry-neutral. Recent reaction--diffusion modeling of pharmacological CSD modulation has demonstrated that minimal excitable-medium frameworks, combined with targeted diffusion manipulations, can reproduce experimentally observed changes in propagation dynamics \citep{GuerreroPrieto2025}. The present work extends that modeling approach from pharmacological to geometrical questions.
+
+Here we ask whether predicted sulcal slowing survives when that directional structure is included explicitly in the transport operator. We compare conventional scalar attenuation models with tensor diffusion fields aligned to the sulcal centerline. The goal is not to infer a unique physiological mechanism from a single parameterization, but to determine whether sulcal delay is robust to model class and whether isotropic reductions systematically overestimate its magnitude.
+
+\section{Materials and methods}
+
+\subsection{Base excitable-medium dynamics}
+
+We simulate CSD-like propagation with Barkley reaction--diffusion kinetics \citep{Barkley1991}:
+\begin{align}
+\frac{\partial u}{\partial t} &= \frac{1}{\epsilon}u(1-u)\left(u-\frac{v+b}{a}\right) + \nabla\cdot\left(\mathbf{D}(x,y)\nabla u\right), \\
+\frac{\partial v}{\partial t} &= u-v,
+\end{align}
+with $a=0.75$, $b=0.02$, and $\epsilon=0.02$. The computational domain is a $200\times 140$ grid, with $dx=0.1$ mm and $dt=0.002$ s, corresponding to a physical field of view of 19.9 mm in the $x$ direction and 13.9 mm in the $y$ direction. A circular stimulus of radius 1.2 mm is centered at normalized coordinates $(0.15,0.50)$ and sets $u=0.95$ within the stimulus mask at initialization. No-flux boundary conditions are enforced.
+
+\subsection{Sulcal geometry and scalar coupling families}
+
+The sulcal centerline was prescribed directly from the simulation parameters as
+\[
+x_c(y)=9.95 + 1.99\sin\!\left(2\pi\frac{y}{13.9}\right) \; \mathrm{mm},
+\]
+which corresponds to a normalized center position of 0.50, a normalized sinusoidal amplitude of 0.10, one sinusoidal cycle over the domain, and zero phase shift. At each grid point we define the signed horizontal offset
+\[
+\phi(x,y)=x-x_c(y).
+\]
+For a chosen sulcus width $w$, the sulcal mask is
+\[
+\mathcal{S}_w=\{(x,y): |\phi(x,y)|\leq w/2\}.
+\]
+
+Two scalar attenuation envelopes were used. In the scalar-flat family, a binary mask equal to 1 inside $\mathcal{S}_w$ and 0 outside was smoothed with a Gaussian kernel of standard deviation $\sigma_{\mathrm{edge}}=1.2$ mm and then clipped to the interval $[0,1]$; after smoothing, all pixels belonging to the original sulcal mask were reset to 1. In the scalar-Gaussian family, the weight field was
+\[
+\omega_{\mathrm{gauss}}(x,y)=\exp\!\left[-\frac{\phi(x,y)^2}{2\sigma_g^2}\right],
+\]
+with $\sigma_g=\max(w/2,dx)$. For all widths reported here ($w\in\{2.5,4.0,5.5\}$ mm), this reduces to $\sigma_g=w/2$.
+
+In both scalar families, the diffusion tensor is isotropic,
+\[
+\mathbf{D}(x,y)=D_0 g(x,y)\mathbf{I},
+\]
+with baseline diffusivity $D_0=0.01$ and coupling field
+\[
+g(x,y)=1-(1-g_{\mathrm{sulcus}})\,\omega(x,y),
+\]
+where $\omega(x,y)$ is the profile-specific weight field and $g_{\mathrm{sulcus}}\in\{0.95,0.85,0.75\}$.
+
+\subsection{Orientation-aware tensor coupling family}
+
+To model geometry-aware directional transport, we construct a local unit tangent field from the derivative of the sulcal centerline,
+\[
+\mathbf{t}(y)=\frac{(x_c'(y),1)}{\sqrt{1+x_c'(y)^2}},
+\]
+and the corresponding unit normal field
+\[
+\mathbf{n}(y)=(t_y,-t_x).
+\]
+The tensor family uses the same profile-specific attenuation envelope in the normal direction and a weaker attenuation in the tangential direction:
+\[
+g_n(x,y)=g(x,y),
+\]
+\[
+g_t(x,y)=1-\eta\left(1-g_n(x,y)\right),
+\]
+with $\eta=0.4$. The diffusion tensor is then
+\[
+\mathbf{D}(x,y)=D_0\left(g_t(x,y)\,\mathbf{t}\mathbf{t}^\top + g_n(x,y)\,\mathbf{n}\mathbf{n}^\top\right).
+\]
+This construction preserves easier along-sulcus propagation while still penalizing cross-sulcus spread.
+
+\subsection{Parameter grid and readouts}
+
+Unless otherwise stated, the sensitivity analysis used sulcal widths
+$w\in\{2.5,4.0,5.5\}$ mm, attenuation values $g_{\mathrm{sulcus}}\in\{0.95,0.85,0.75\}$, two coupling envelopes (flat and Gaussian), and two transport classes (scalar and tensor), yielding 36 perturbed cases plus the matched control.
+
+We use two complementary readouts. First, a virtual-electrode speed metric measures arrival-time differences between two circular regions of interest (ROIs) of radius 1.0 mm centered at normalized coordinates $E_1=(0.43,0.50)$ and $E_2=(0.62,0.50)$. Their center-to-center Euclidean distance is 3.781 mm. Pixelwise arrival time is defined as the first time at which $u\ge 0.5$ after $t\ge 0.5$ s. ROI arrival time is the median of the pixelwise arrival times within the ROI mask. Reported speeds are rescaled by a single multiplicative factor so that the matched control condition equals 3.000 mm/min.
+
+Second, arrival-time fields $T(x,y)$ are converted into local speed maps according to
+\[
+v_{\mathrm{local}}(x,y)=\frac{1}{\|\nabla T(x,y)\|},
+\]
+with the final values reported in mm/min by multiplying by 60. Spatial gradients were computed with centered differences in both directions. Pixels with undefined arrival times or local speeds above 15 mm/min were excluded. Median local speeds were computed within the sulcal mask and in 2.0-mm bands immediately upstream and downstream of the sulcus,
+\[
+-(w/2+2.0)\le \phi(x,y) < -w/2
+\]
+and
+\[
+w/2 < \phi(x,y) \le w/2+2.0,
+\]
+respectively.
+
+\subsection{Numerical implementation}
+
+The diffusion term was discretized in flux-conservative form on the Cartesian grid. For the tensor case, the operator was evaluated as
+\[
+\nabla\cdot(\mathbf{D}\nabla u)=\partial_x(D_{xx}u_x + D_{xy}u_y)+\partial_y(D_{xy}u_x + D_{yy}u_y),
+\]
+where the face fluxes were built from centered spatial derivatives and arithmetic averaging of the tensor coefficients to cell faces. Time integration used explicit forward Euler with a CFL number of $D_0 \cdot dt / dx^2 = 0.002$, well below the stability limit of 0.25 for two-dimensional explicit diffusion. Each manuscript-scale simulation ran for 200,000 time steps, corresponding to 400~s of simulated time, which was sufficient for the wavefront to traverse the analysis region in all reported cases. Because the Barkley kinetics are deterministic and no stochastic forcing is applied, all simulations are exactly reproducible given the same parameters; reported values are therefore point estimates rather than sample statistics.
+
+Grid convergence was verified by repeating the representative case ($w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile) at three spatial resolutions: $dx\in\{0.20, 0.10, 0.05\}$~mm with matched time steps. The anisotropy gain (tensor minus scalar speed) converged from 0.119 to 0.107 to 0.104~mm/min, confirming that the reported scalar--tensor differences are well above the discretization error at the manuscript resolution.
+
+The systematic advantage of tensor over scalar coupling across the complete nine-point parameter grid was tested with paired Wilcoxon signed-rank tests (one-sided, $H_1$: tensor $>$ scalar). In both profile families, all nine matched pairs showed positive anisotropy gain. The Wilcoxon statistic was $W=45$ (the maximum possible for $n=9$), yielding $p=0.0020$ for both families. Paired $t$-tests confirmed the same conclusion (flat: $t(8)=4.99$, $p=0.00053$; Gaussian: $t(8)=4.84$, $p=0.00064$).
+
+All simulations and analyses were run in Python using NumPy, SciPy, and Matplotlib. The accompanying project specification declares Python $\geq$ 3.10, NumPy $\geq$ 1.23, SciPy $\geq$ 1.10, and Matplotlib $\geq$ 3.7.
+
+\section{Results}
+
+\subsection{Sulcal slowing survives scalar-to-tensor model changes}
+
+Across all tested families, the wavefront remained continuous and the sulcus exhibited delayed arrival times relative to matched control tissue (Fig.~\ref{fig:wavefront}). This is the central robustness result: localized sulcal slowing did not disappear when the coupling model became orientation-aware. The full-grid speed-reduction heatmaps show the same qualitative pattern across scalar-flat, scalar-Gaussian, tensor-flat, and tensor-Gaussian families, with stronger slowing as sulcus width increased and $g_{\mathrm{sulcus}}$ decreased (Fig.~\ref{fig:delta_speed}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_wavefront_snapshots.png}
+\caption{Wavefront propagation through the sulcal region for the representative case ($w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile). Columns show control (no sulcal attenuation), scalar-flat, and tensor-flat models. Rows show three time snapshots ($t=80$, 140, and 220~s). White contours mark the sulcal boundary. The wavefront remains continuous in all models but is visibly delayed in the scalar and tensor conditions relative to control, with the scalar-flat case showing the strongest delay.}
+\label{fig:wavefront}
+\end{figure}
+
+\subsection{Tensor transport moderates the magnitude of slowing}
+
+The main quantitative difference is not whether slowing exists, but how large it is. In the representative manuscript-scale case (sulcus width 4.0 mm, $g_{\mathrm{sulcus}}=0.75$), scalar-flat and scalar-Gaussian cases slowed to 2.582 and 2.618 mm/min, respectively. The matched tensor-flat and tensor-Gaussian cases increased to 2.689 and 2.718 mm/min. Thus, introducing orientation-aware transport raised speed by 0.107 mm/min in the flat family and 0.100 mm/min in the Gaussian family. The same moderation appeared in local sulcal speed maps and sulcal compartment medians (Figs.~\ref{fig:anisotropy_gain} and \ref{fig:sulcus_speed}): relative to the control sulcal median of 2.976 mm/min, the scalar-flat and tensor-flat cases fell to 2.522 and 2.593 mm/min, while the scalar-Gaussian and tensor-Gaussian cases fell to 2.598 and 2.658 mm/min.
+
+\begin{table}[t]
+\centering
+\caption{Representative scalar-versus-tensor comparison from the manuscript-scale sensitivity study (sulcus width 4.0 mm, $g_{\mathrm{sulcus}}=0.75$).}
+\label{tab:representative}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Family & Speed (mm/min) & $\Delta v$ vs control (mm/min) & Interpretation \\
+\midrule
+Scalar flat & 2.582 & -0.418 & Strongest representative slowing \\
+Tensor flat & 2.689 & -0.311 & Slower than control, but less extreme \\
+Scalar Gaussian & 2.618 & -0.382 & Moderate slowing with smooth envelope \\
+Tensor Gaussian & 2.718 & -0.282 & Orientation-aware moderation persists \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Upstream--downstream asymmetry of sulcal delay}
+
+The delay imposed by the sulcus was strongly asymmetric: in the representative scalar-flat case the median upstream delay was 0.75~s, while the median downstream delay was 17.8~s. This pattern persisted across all model families and parameter combinations. The sulcus therefore acts as a slow-release bottleneck rather than a uniform damper: the wavefront enters the sulcal region with only a modest delay but accumulates a large arrival-time deficit that persists well downstream of the sulcal boundary. The tensor-flat model showed the same asymmetry with reduced magnitude (upstream 0.53~s, downstream 14.7~s), consistent with orientation-aware transport partially alleviating the bottleneck effect.
+
+\subsection{Isotropic scalar models behave like upper-bound slowing models}
+
+Across the full manuscript-scale sensitivity grid, tensor coupling increased propagation speed by $0.062 \pm 0.037$~mm/min (mean $\pm$ SD, $n=9$ matched pairs) relative to scalar cases in the flat family and by $0.057 \pm 0.035$~mm/min in the Gaussian family. All 18 matched pairs showed positive anisotropy gain (Wilcoxon signed-rank $W=45$, $p=0.0020$ for both families). The worst slowing in the explored grid occurred in the scalar-flat family, not in the tensor family: the width-5.5~mm, $g_{\mathrm{sulcus}}=0.75$ scalar-flat case reached 2.552~mm/min ($\Delta v=-0.448$~mm/min), whereas the matched tensor-flat case remained faster at 2.670~mm/min. This supports a new interpretation: scalar sulcal attenuation provides an upper-bound estimate of slowing, whereas tensor transport provides a more conservative estimate that preserves directional structure.
+
+\subsection{The scalar--tensor ordering is robust to the tangential attenuation ratio}
+
+To assess sensitivity to the prescribed tangential attenuation ratio $\eta$, we swept $\eta$ from 0 (complete tangential preservation) to 1 (scalar recovery) at the representative case ($w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile; Fig.~\ref{fig:eta_sweep}). The anisotropy gain decreased monotonically from 0.171~mm/min at $\eta=0$ to 0~mm/min at $\eta=1$, as expected. Crucially, the tensor model was faster than the matched scalar model for every $\eta < 1$. The manuscript value $\eta=0.4$ lies near the middle of the accessible range, yielding an anisotropy gain of 0.107~mm/min. Even at $\eta=0.8$, the gain remained positive at 0.036~mm/min. This confirms that the scalar--tensor ordering is not an artifact of a particular $\eta$ choice but a structural consequence of preserving easier along-sulcus transport.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_eta_sensitivity.png}
+\caption{Sensitivity of propagation speed to the tangential attenuation ratio $\eta$. Left, virtual-electrode speed; right, median sulcal local speed. At $\eta=0$, the tangential direction is unattenuated and the tensor model propagates fastest. At $\eta=1$, the tensor model recovers the isotropic scalar result. The horizontal dashed line marks the scalar-flat baseline. Representative case: $w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile.}
+\label{fig:eta_sweep}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_extended_delta_speed_heatmaps.png}
+\caption{Propagation-speed change across model families. Heatmaps show $\Delta v = v - 3.000$ mm/min for virtual-electrode speed after calibration of the control condition to 3.000 mm/min. Within each panel, the x-axis is attenuation factor ($g_{\mathrm{sulcus}}=0.95$, 0.85, 0.75) and the y-axis is sulcus width ($w=2.5$, 4.0, 5.5 mm). From left to right, panels show the scalar-flat, scalar-Gaussian, tensor-flat, and tensor-Gaussian families. More negative values indicate stronger slowing relative to control.}
+\label{fig:delta_speed}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[c]{0.40\textwidth}
+\centering
+\includegraphics[width=\linewidth]{fig_extended_anisotropy_gain_heatmaps.png}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.58\textwidth}
+\centering
+\includegraphics[width=\linewidth]{fig_extended_local_speed_triptych.png}
+\end{minipage}
+\caption{Effect of orientation-aware transport on propagation speed and local-speed structure. Left, tensor-minus-scalar virtual-electrode speed difference ($\Delta v_{\mathrm{tensor-scalar}}$, mm/min) for matched flat and Gaussian families across sulcus width and attenuation factor; positive values indicate faster propagation in the tensor model. Right, local-speed maps for the representative case $w=4.0$ mm and $g_{\mathrm{sulcus}}=0.75$ in the control, scalar-flat, and tensor-flat models. White contours indicate the sulcal boundary.}
+\label{fig:anisotropy_gain}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_extended_sulcus_speed_heatmaps.png}
+\caption{Median local propagation speed within the sulcal compartment. Heatmaps show the median of $v_{\mathrm{local}}(x,y)=60/\|\nabla T(x,y)\|$ computed within the sulcal mask for each model family. Within each panel, the x-axis is attenuation factor ($g_{\mathrm{sulcus}}=0.95$, 0.85, 0.75) and the y-axis is sulcus width ($w=2.5$, 4.0, 5.5 mm). Tensor families retain higher sulcal median speeds than matched scalar families throughout the explored grid.}
+\label{fig:sulcus_speed}
+\end{figure}
+
+\section{Discussion}
+
+The present simulations show that sulcal slowing is robust to model class but not to model structure in magnitude. In all four coupling families, wavefront arrival was delayed within the sulcal region relative to the calibrated control (Figs.~\ref{fig:wavefront} and \ref{fig:delta_speed}). When transport was made orientation-aware, however, the delay was reduced systematically relative to matched scalar models, with all 18 matched pairs across the sensitivity grid showing positive anisotropy gain ($p=0.0020$, Wilcoxon signed-rank). The main result is therefore comparative: sulcal slowing persists after directional structure is introduced, but isotropic attenuation exaggerates the size of the effect.
+
+This interpretation is consistent with a broader geometrical principle from cortical forward modeling. In EEG/MEG simulations, local folding geometry and dipole orientation strongly shape mesoscale observables, including enhancement and cancellation profiles across sulcal banks and gyral crowns \citep{Ahlfors2010a,Ahlfors2010b,Irimia2012,Muller2023,Reimann2022}. Those studies concern observability rather than propagation, and they do not predict CSD speed directly. They nevertheless show that sulci are not well represented as geometry-neutral compartments. The present work extends that principle to transport: when the diffusion operator preserves easier along-sulcus propagation than cross-sulcus spread, the predicted delay remains but is weaker than in isotropic scalar models. This result also complements recent reaction--diffusion CSD modeling of pharmacological modulation \citep{GuerreroPrieto2025}, by showing that even the transport operator's structural assumptions---not only its coupling magnitude---shape predicted propagation speed.
+
+The sensitivity analysis of the tangential attenuation ratio $\eta$ (Fig.~\ref{fig:eta_sweep}) demonstrates that the scalar--tensor ordering is not an artifact of a specific parameter choice. The tensor model was faster than the matched scalar model for every $\eta < 1$, with the gain decreasing monotonically from 0.171~mm/min at $\eta=0$ to 0 at $\eta=1$. This monotonic relationship provides a practical handle: once tissue-specific estimates of directional transport become available, the appropriate $\eta$ can be selected without qualitatively changing the conclusion that isotropic attenuation overestimates sulcal delay.
+
+A notable secondary finding is the strong upstream--downstream asymmetry of sulcal delay. The wavefront entered the sulcal region with only modest delay (upstream median $\leq 1.3$~s across all conditions), but accumulated a large arrival-time deficit that persisted well past the sulcal boundary (downstream median up to 23.4~s in the strongest case). This bottleneck behavior suggests that sulcal slowing may have more complex spatial consequences than a simple speed reduction confined to the sulcal compartment.
+
+The manuscript therefore supports a constrained conclusion. A localized scalar reduction is sufficient to generate sulcal slowing in a minimal excitable-medium model, but it should not be interpreted as a uniquely identified physiological mechanism. Across the parameter grid explored here, scalar models behave as upper-bound slowing models relative to tensor models with the same spatial attenuation envelope. This point matters because estimates of delay obtained from scalar coupling alone may attribute too much of the effect to local weakening and too little to directional structure.
+
+Several limitations define the scope of the result. First, Barkley kinetics provide a minimal excitable-medium description and do not resolve ion concentration dynamics, glial buffering, vascular interactions, or laminar microstructure. Second, the tangential-to-normal attenuation ratio in the tensor family was prescribed rather than derived from tissue measurements, although the $\eta$ sensitivity analysis shows that the scalar--tensor ordering persists for all $\eta < 1$. Third, the model is two-dimensional and therefore abstracts away three-dimensional cortical geometry and curvature-dependent thickness effects. For that reason, the present claim is not that the tensor model is fully biophysical, but that it is a stricter test of whether sulcal slowing survives when orientation structure is represented explicitly. A direct next step is to test whether this ordering is preserved in a more biophysical ionic model of spreading depolarization \citep{Wei2014,Zandt2015}.
+
+\section*{Code availability}
+The simulation code, analysis pipeline, and supplementary-analysis scripts are available at \texttt{[REPOSITORY\_URL]} (to be deposited upon acceptance). The main study is implemented in \texttt{scripts/run\_extended\_study.py}, supplementary analyses in \texttt{scripts/run\_supplementary\_analyses.py}, and reusable model code under \texttt{src/csd\_sulcus/}.
+
+\section*{Data availability}
+The code and processed outputs used to generate the reported figures and table are organized in the accompanying repository. A public repository URL and archival DOI will be inserted after public deposition.
+
+\section*{Funding}
+Funding information will be added in the final submitted version after administrative confirmation.
+
+\section*{Author contributions}
+A.P. conceived the study, implemented the simulations, analyzed the data, and drafted the manuscript. R.G. contributed to interpretation, critical revision, and final approval of the manuscript.
+
+\section*{Disclosure statement}
+The authors declare no competing interests.
+
+\bibliographystyle{apalike}
+\bibliography{references}
+
+\end{document}

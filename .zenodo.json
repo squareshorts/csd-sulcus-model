@@ -1,0 +1,31 @@
+{
+  "title": "CSD Sulcus Model",
+  "version": "0.1.0",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "Pereira, Antonio",
+      "orcid": "0000-0002-0808-1058",
+      "affiliation": "Institute of Technology, Federal University of Para (UFPA)",
+      "type": "ProjectMember"
+    },
+    {
+      "name": "Guedes, Rubem",
+      "orcid": "0000-0002-2396-4019",
+      "affiliation": "Department of Nutrition, Federal University of Pernambuco (UFPE)",
+      "type": "ProjectMember"
+    }
+  ],
+  "keywords": [
+    "cortical spreading depolarization",
+    "spreading depression",
+    "sulcus",
+    "tensor diffusion",
+    "reaction-diffusion",
+    "computational neuroscience"
+  ],
+  "description": "Reproducible cortical spreading depolarization modeling with scalar and orientation-aware tensor coupling in folded cortical geometry."
+}

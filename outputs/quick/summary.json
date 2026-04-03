@@ -1,0 +1,53 @@
+{
+  "mode": "quick",
+  "fixed_scale": 0.12963290579389655,
+  "control_speed_mm_min": 2.9999999999999996,
+  "dipole_speed_mm_min": 2.5680490654205603,
+  "delta_speed_mm_min": -0.4319509345794392,
+  "delta_speed_percent": -14.398364485981311,
+  "delay_sulcus_s": 6.942681678607983,
+  "delay_upstream_s": 0.2622790856363011,
+  "delay_downstream_s": 12.635680655066523,
+  "peak_delay_s": 16.199590583418598,
+  "params": {
+    "nx": 120,
+    "ny": 84,
+    "dx": 0.1,
+    "dt": 0.002,
+    "final_t_end": 80.0,
+    "a": 0.75,
+    "b": 0.02,
+    "eps": 0.02,
+    "D0": 0.01,
+    "sulcus_center_x": 0.5,
+    "sulcus_width_mm": 3.0,
+    "sulcus_curved": true,
+    "sulcus_curve_amp": 0.1,
+    "sulcus_curve_cycles": 1.0,
+    "sulcus_curve_phase": 0.0,
+    "g_gyrus": 1.0,
+    "g_sulcus_min": 0.75,
+    "g_smooth_mm": 0.8,
+    "stim_radius_mm": 1.2,
+    "stim_u": 0.95,
+    "stim_location": [
+      0.15,
+      0.5
+    ],
+    "u_threshold": 0.5,
+    "min_arrival_t": 0.5,
+    "target_gyrus_mm_min": 3.0,
+    "seed": 0
+  },
+  "electrodes": {
+    "E1": [
+      0.43,
+      0.5
+    ],
+    "E2": [
+      0.62,
+      0.5
+    ],
+    "radius_mm": 1.0
+  }
+}

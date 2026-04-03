@@ -1,0 +1,235 @@
+\documentclass[12pt]{article}
+
+% ------------------------------------------------
+% PACKAGES
+% ------------------------------------------------
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{authblk}
+\usepackage{setspace}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage{booktabs}
+
+\geometry{margin=1in}
+\doublespacing
+\graphicspath{{../outputs/full/figures/}}
+
+% ------------------------------------------------
+% TITLE & AUTHORS
+% ------------------------------------------------
+\title{A dipole-motivated reduction in effective coupling predicts localized sulcal slowing of cortical spreading depolarization in an excitable-medium model}
+
+\author[1]{Antonio Pereira}
+\author[2]{Rubem Guedes}
+\affil[1]{Institute of Technology, Federal University of Pará (UFPA)}
+\affil[2]{Department of Nutrition, Federal University of Pernambuco (UFPE)}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+% ------------------------------------------------
+% ABSTRACT
+% ------------------------------------------------
+\begin{abstract}
+Cortical spreading depolarization (CSD) is a slow reaction--diffusion-like wave that propagates through the cortex and is implicated in migraine aura and acute brain injury. However, how gyral--sulcal geometry modulates CSD conduction remains incompletely characterized. Here, we test a minimal, experimentally motivated hypothesis: that reduced extracellular field strength in sulcal banks due to dipole attenuation can be represented at the mesoscale as a local reduction in \emph{effective spatial coupling} (modeled as a reduced diffusion coefficient) within the sulcus. We simulate an excitable-medium reaction--diffusion system (Barkley kinetics) on a two-dimensional cortical sheet containing a curved sulcus and quantify propagation using arrival-time maps and a virtual-electrode velocity metric.
+Calibrating the control condition to a canonical gyral speed of 3.00\,mm/min, reducing the sulcal coupling to $g_{\mathrm{sulcus}}=0.75$ decreases conduction to 2.579\,mm/min ($\Delta v=-0.4208$\,mm/min, $-14.03\%$). A parameter sweep shows a smooth, monotonic dependence of velocity on $g_{\mathrm{sulcus}}$, with magnitudes consistent with the theoretical scaling $v\propto\sqrt{D}$ for excitable reaction--diffusion fronts. The delay is spatially confined to the sulcal compartment and does not fragment the wavefront.
+These results provide a parsimonious mechanistic link between sulcal dipole attenuation (a measurement- and field-relevant anatomical property) and a testable prediction of localized CSD conduction delays.
+\end{abstract}
+
+\noindent \textbf{Keywords:} cortical spreading depolarization, spreading depression, sulcus, cortical folding, excitable media, reaction--diffusion, effective coupling
+
+% ------------------------------------------------
+% INTRODUCTION
+% ------------------------------------------------
+\section{Introduction}
+
+Cortical spreading depolarization (CSD) is a propagating wave of near-complete depolarization of neurons and glia, accompanied by a transient depression of ongoing activity \citep{mathew2022}. In migraine aura and in acute brain injury, CSD-like events propagate slowly across the cortex, typically on the order of a few millimeters per minute \citep{Pietrobon2014,Ayata2015,Woitzik2013}. While the cellular and ionic mechanisms of CSD have been extensively studied, it remains less clear how cortical folding geometry shapes CSD propagation at mesoscopic scales relevant to electrocorticography, optical imaging, and clinical monitoring.
+
+A consistent observation in MEG/EEG forward modeling is that extracellular fields and measured signal amplitudes depend strongly on cortical folding and source orientation \citep{Ahlfors2010, ahlfors2010cancellation}. In sulcal banks, pyramidal-cell orientations can produce partial dipole cancellation, attenuating measurable fields relative to gyral crowns \citep{Murakami2006,Ahlfors2010,Muller2023,Reimann2022}. Although amplitude attenuation is not itself a measure of propagation speed, it motivates the broader hypothesis that sulcal geometry reduces effective long-range extracellular coupling. Such coupling contributes to the spatial spread of depolarization and ionic gradients during CSD, suggesting that sulcal folding may influence conduction indirectly via geometry-dependent field attenuation.
+
+Prior computational and theoretical studies have shown that cortical geometry can influence spreading-depression dynamics through curvature, anisotropy, and spatial heterogeneity of coupling. Reaction--diffusion models on curved or folded substrates demonstrate that Gaussian curvature and geometric constraints can modulate wave speed, directionality, and stability \citep{Tuckwell1978,Tuckwell2008,Chapuisat2007,Kenny2019}. Patient-specific simulations further suggest that individual folding patterns and diffusivity tensors may shape clinically observed propagation profiles \citep{Kroos2019}. However, these approaches typically emphasize geometric curvature or anisotropic diffusion rather than explicitly linking sulcal cytoarchitecture and dipole attenuation to a localized reduction in effective coupling.
+
+To test this, we use a deliberately minimal excitable-medium model with a spatially varying coupling coefficient. We interpret the coupling reduction as a coarse-grained representation of sulcal dipole attenuation and related extracellular-field effects: a mesoscale parameterization, not a claim about literal molecular diffusivity. We then quantify how this localized coupling reduction changes arrival times and conduction velocity across a curved sulcus.
+
+% ------------------------------------------------
+% METHODS
+% ------------------------------------------------
+\section{Methods}
+
+\subsection{Reaction--diffusion model}
+
+We simulated excitable-wave dynamics using the Barkley reaction--diffusion system \citep{Barkley1991}:
+\begin{align}
+\frac{\partial u}{\partial t} &= \frac{1}{\epsilon}\,u(1-u)\left(u - \frac{v+b}{a}\right)
++ \nabla\cdot\!\left(D(x,y)\,\nabla u\right), \\
+\frac{\partial v}{\partial t} &= u - v,
+\end{align}
+with parameters in an excitable regime:
+\[
+a=0.75,\quad b=0.02,\quad \epsilon=0.02.
+\]
+Only the activator variable $u$ diffuses. The computational domain was a $200\times 140$ grid with $dx=0.1$\,mm and $dt=0.002$\,s. A circular stimulus (radius 1.2\,mm) set $u=0.95$ to initiate a wave.
+
+\subsection{Sulcal geometry}
+
+A curved sulcus was defined by a sinusoidal centerline $x_c(y)$ and a fixed width of 4\,mm:
+\[
+\mathcal{S}=\{(x,y):|x-x_c(y)|\le 2~\mathrm{mm}\}.
+\]
+All simulations used identical geometry; only $D(x,y)$ differed between conditions.
+
+\subsection{Dipole-motivated effective coupling field}
+
+We model spatial coupling as
+\[
+D(x,y)=D_0\,g(x,y),\qquad D_0=0.01.
+\]
+Control condition: $g(x,y)=1$ everywhere.
+
+Sulcal-reduction condition: $g(x,y)=g_{\mathrm{sulcus}}<1$ inside $\mathcal{S}$ and $g(x,y)=1$ outside. To avoid numerical artifacts from a sharp discontinuity, $g(x,y)$ was smoothly transitioned at the sulcal boundary (Gaussian smoothing over 1.2\,mm) while enforcing the minimum value inside the sulcus.
+
+This parameterization is intended as a \emph{mesoscale effective coupling} model: a compact representation of geometry-dependent attenuation of extracellular-field-mediated interactions, rather than a claim about microscopic molecular diffusivity. Similar coarse-grained interpretations of diffusion or coupling parameters have been employed in reaction--diffusion and network-based models of spreading depolarization to capture geometric and cytoarchitectural effects without explicitly modeling cellular-scale electrodynamics \citep{Tuckwell1978,Chapuisat2007,Dahlem2009,Kenny2019}.
+
+\subsection{Numerical scheme and boundary conditions}
+
+The divergence-form diffusion operator $\nabla\cdot(D\nabla u)$ was discretized using centered finite differences with face-averaged $D$ (a standard flux-conservative scheme for spatially varying diffusion). No-flux (Neumann) boundary conditions were enforced.
+
+Simulations were run to $t_{\mathrm{end}}=400$\,s. Arrival times were detected online at every integration step, and only a small set of requested wavefront snapshots was cached for figure generation. This avoids storing the full time history while preserving the propagation metrics.
+
+The flux-conservative discretization ensures that spatial variations in $D(x,y)$ alter propagation speed through local coupling strength rather than introducing numerical anisotropy or artificial reflections at the sulcal boundary.
+
+\subsection{Arrival times and virtual-electrode velocity}
+
+Arrival time at each grid point was defined as the first threshold crossing $u\ge 0.5$ after $t\ge 0.5$\,s. Two circular regions of interest (“virtual electrodes”) of radius 1\,mm were centered at normalized coordinates:
+\[
+E_1=(0.43,0.50),\qquad E_2=(0.62,0.50).
+\]
+Let $t_1$ and $t_2$ be the median arrival times within each ROI. With Euclidean distance $d=3.781$\,mm between ROI centers, the raw model velocity is
+\[
+v_{\mathrm{model}}=\frac{d}{t_2-t_1}\cdot 60.
+\]
+Because the Barkley kinetics are nondimensional and not fit to a specific physiological time constant, we report velocities in physical units by applying a single global scaling factor $\alpha$ chosen so that the control condition matches 3.00\,mm/min:
+\[
+v_{\mathrm{phys}}=\alpha\,v_{\mathrm{model}}.
+\]
+The same $\alpha$ was applied to all conditions; therefore the percent slowing is scale-invariant.
+
+% ------------------------------------------------
+% RESULTS
+% ------------------------------------------------
+\section{Results}
+
+\subsection{Localized sulcal delays without wavefront disruption}
+
+Both control and sulcal-reduction conditions produced smooth, continuous wavefronts that propagated across the domain. Arrival-time difference maps $\Delta t = t_{\mathrm{sulcus}}-t_{\mathrm{control}}$ revealed a spatially confined band of delayed propagation co-localized with the sulcal compartment, while gyral regions showed minimal change (Fig.~\ref{fig:csd_maps_arrival}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig1_diffusion_arrival.png}
+\caption{
+\textbf{Geometry-dependent slowing in a sulcal compartment: arrival-time maps.}
+Imposed coupling field $g(x,y)$, arrival-time map in the sulcal-reduction condition, and the difference
+$\Delta t$ relative to control, showing spatially localized delays within the sulcus.
+}
+\label{fig:csd_maps_arrival}
+\end{figure}
+
+\clearpage
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{fig2_wavefront_snapshots.png}
+\caption{
+\textbf{Wavefront propagation across the sulcus.}
+Representative wavefront snapshots at matched times for control and sulcal-reduction conditions.
+White contours mark the sulcal boundary; the wavefront remains continuous but is delayed within the sulcus.
+}
+\label{fig:csd_maps_wavefront}
+\end{figure}
+\clearpage
+
+\subsection{Reduction in velocity across the sulcus}
+
+After calibrating the control condition to 3.00\,mm/min, setting $g_{\mathrm{sulcus}}=0.75$ reduced the conduction velocity to 2.579\,mm/min:
+\[
+v_{\mathrm{control}}=3.000~\mathrm{mm/min},\qquad
+v_{0.75}=2.579~\mathrm{mm/min},\qquad
+\Delta v=-0.4208~\mathrm{mm/min}\;(-14.03\%).
+\]
+Virtual-electrode arrival curves show that the delay accumulates primarily when the wavefront traverses the sulcal region (Fig.~\ref{fig:csd_quant}A).
+
+\subsection{Monotonic graded dependence on sulcal coupling and agreement with \texorpdfstring{$v\propto \sqrt{D}$}{v ∝ sqrt(D)}}
+
+Varying the sulcal coupling parameter produced a smooth, monotonic reduction in speed (Fig.~\ref{fig:csd_quant}B; Table~\ref{tab:sweep}). The observed magnitudes closely match the theoretical scaling $v\approx v_0\sqrt{g_{\mathrm{sulcus}}}$ expected for excitable reaction--diffusion wavefronts, supporting the interpretation that the effect arises directly from reduced spatial coupling rather than threshold artifacts.
+
+\begin{table}[t]
+\centering
+\caption{Conduction velocity versus sulcal coupling reduction. $v_0=3.00$\,mm/min is the calibrated control speed. The final column shows the theoretical prediction $v_0\sqrt{g_{\mathrm{sulcus}}}$.}
+\label{tab:sweep}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+$g_{\mathrm{sulcus}}$ & $v$ (mm/min) & $\Delta v$ (mm/min) & $\Delta v$ (\%) & $v_0\sqrt{g_{\mathrm{sulcus}}}$ (mm/min) \\
+\midrule
+1.00 & 3.000 & 0.000 & 0.00\% & 3.000 \\
+0.95 & 2.914 & -0.086 & -2.87\% & 2.924 \\
+0.90 & 2.826 & -0.174 & -5.80\% & 2.846 \\
+0.85 & 2.739 & -0.261 & -8.70\% & 2.766 \\
+0.80 & 2.657 & -0.343 & -11.43\% & 2.683 \\
+0.75 & 2.579 & -0.421 & -14.03\% & 2.598 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\textwidth]{fig3_virtual_electrodes.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{fig4_velocity_vs_g.png}
+\caption{
+\textbf{Quantification of sulcal slowing.}
+(A) Virtual-electrode arrival times across the sulcus for control and sulcal-reduction conditions.
+(B) Conduction velocity as a function of \texorpdfstring{$g_{\mathrm{sulcus}}$}{g_sulcus}, showing monotonic slowing with increasing coupling reduction.
+}
+\label{fig:csd_quant}
+\end{figure}
+
+\subsection{Determinism and reproducibility}
+
+The model is deterministic and does not include stochastic terms. Repeating simulations with different random-number seeds (without changing initial conditions or parameters) yields identical velocities and arrival-time maps up to numerical precision. Accordingly, we do not report inferential statistics across “seeds”; robustness is instead assessed via the parameter sweep in Table~\ref{tab:sweep}.
+
+% ------------------------------------------------
+% DISCUSSION
+% ------------------------------------------------
+\section{Discussion}
+
+We tested whether a localized reduction in effective spatial coupling within sulcal banks, motivated by dipole cancellation and the associated attenuation of extracellular fields in the folded cortex, is sufficient to produce localized slowing of CSD-like waves. This framing builds on experimental and optical-imaging evidence that CSD velocity varies across cortical regions with differing cytoarchitecture, laminar structure, and folding geometry \citep{Vilagi2001,Fujita2016,Santos2014,Santos2017}. In a minimal excitable-medium model, reducing sulcal coupling to $g_{\mathrm{sulcus}}=0.75$ produced a 14.03\% decrease in conduction velocity relative to the calibrated control. The delay was spatially confined to the sulcal compartment and did not destabilize or fragment the wavefront.
+
+This study does not claim that dipole cancellation has been experimentally shown to slow CSD. What is well established is that folding and source orientation shape extracellular fields and measured amplitudes in MEG/EEG \citep{Murakami2006,Ahlfors2010,Muller2023}. We use that anatomical/biophysical fact to motivate a testable mesoscale hypothesis: if effective long-range coupling is reduced in sulcal banks, conduction delays should occur locally. Our simulations show that this hypothesis is sufficient to generate delays of plausible magnitude.
+
+Folded geometry and curvature can influence spreading dynamics in other models \citep{Kenny2019}. Our contribution is complementary: we propose a specific, measurement- and cytoarchitecture-motivated mechanism (dipole attenuation represented as reduced effective coupling within sulci) and show that it yields (i) spatially localized delays and (ii) a quantitative speed scaling consistent with $v\propto \sqrt{D}$.
+
+From this perspective, geometry- and cytoarchitecture-dependent modulation of effective coupling may also contribute to reported age-related changes in CSD propagation \citep{Guedes2019}, given that aging is associated with substantial remodeling of cortical thickness and folding at mesoscopic scales \citep{Lockhart2014structural}.
+
+The model predicts that sulcal banks should exhibit localized delays in CSD arrival times relative to nearby gyral crowns, even when the wavefront remains continuous. The monotonic dependence in Table~\ref{tab:sweep} further predicts that any physiological or anatomical factor that deepens sulcal attenuation (effectively lowering $g_{\mathrm{sulcus}}$) should increase the delay approximately as $\sqrt{g_{\mathrm{sulcus}}}$.
+
+Notably, optical imaging and electrophysiological studies have reported regionally heterogeneous CSD velocities associated with cytoarchitectural transitions and sulcal anatomy, including slower propagation in paleocortical or insular regions relative to the neocortex \citep{Vilagi2001,Fujita2016}. The present model predicts that such heterogeneity can arise even in the absence of metabolic or vascular differences, purely from geometry-dependent effective coupling.
+
+\subsection{Limitations}
+
+We intentionally used a minimal excitable-medium model rather than a fully biophysical ionic model \citep{Wei2014,Zandt2015}. Therefore, $D(x,y)$ should be interpreted as an effective coupling parameter at the mesoscale, not a microscopic diffusion constant. Future work should test whether the same geometry-dependent slowing persists in biophysical CSD models with explicit ion dynamics, layered cortex, anisotropy, and 3D folded surfaces.
+
+\section*{Code availability}
+Code to reproduce simulations and figures is organized in the accompanying repository, with an end-to-end runner in `scripts/run_study.py` and reusable model code under `src/csd_sulcus/`.
+
+\bibliographystyle{apalike}
+\bibliography{references}
+
+\end{document}

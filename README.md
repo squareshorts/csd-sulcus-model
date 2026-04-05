@@ -4,11 +4,11 @@ This repository contains a reproducible cortical spreading depolarization (CSD) 
 
 ## Repository Contents
 
-- `src/csd_sulcus/`: reusable model, analysis, and plotting code
-- `scripts/run_study.py`: baseline study runner
-- `scripts/run_extended_study.py`: manuscript-scale scalar-versus-tensor sensitivity study
 - `scripts/run_supplementary_analyses.py`: supplementary analyses such as eta sensitivity and grid convergence
-- `scripts/run_physiology_extension.py`: physiology-constrained tensor and reduced biophysical SD extension
+- `scripts/run_biophysical_grid.py`: manuscript-scale biophysical K-buffer sensitivity study
+- `scripts/run_biophysical_validation.py`: microstructure-constrained biophysical validation sweep
+- `scripts/run_physiology_anchor.py`: upgraded physiological speed/delay anchoring logic
+- `src/csd_sulcus/`: reusable model, analysis, and plotting code
 - `tests/test_study.py`: smoke tests for determinism, monotonic slowing, tensor positivity, and physiology-extension ordering
 - `manuscript/reframed_submission.tex`: current submission manuscript
 - `manuscript/figures/`: manuscript-local figure assets for Overleaf or journal upload
@@ -60,16 +60,24 @@ Supplementary analyses:
 python scripts/run_supplementary_analyses.py
 ```
 
-Quick physiology-constrained extension:
-
+Quick biophysical validation sweep:
 ```bash
-python scripts/run_physiology_extension.py --quick
+python scripts/run_biophysical_validation.py --quick
 ```
 
-Full physiology-constrained extension:
-
+Full microstructure-constrained biophysical validation:
 ```bash
-python scripts/run_physiology_extension.py
+python scripts/run_biophysical_validation.py
+```
+
+Full biophysical grid sweep:
+```bash
+python scripts/run_biophysical_grid.py
+```
+
+Upgraded physiological anchoring:
+```bash
+python scripts/run_physiology_anchor.py
 ```
 
 ## Key Outputs

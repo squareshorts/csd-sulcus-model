@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this repository, please cite the software record below."
 title: "CSD Sulcus Model"
 type: software
-version: 0.1.0
+version: 0.2.0
 doi: 10.5281/zenodo.19410880
 license: "MIT"
 abstract: "Reproducible cortical spreading depolarization modeling with scalar and orientation-aware tensor coupling in folded cortical geometry."

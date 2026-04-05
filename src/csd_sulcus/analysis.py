@@ -31,6 +31,18 @@ class ConditionComparison:
     peak_delay_s: float
 
 
+@dataclass(frozen=True)
+class ReferenceBandSummary:
+    label: str
+    lower_mm_min: float
+    upper_mm_min: float
+    n_total: int
+    n_within: int
+    observed_min_mm_min: float
+    observed_max_mm_min: float
+    observed_mean_mm_min: float
+
+
 def roi_mask(center_norm: tuple[float, float], radius_mm: float, p: Params) -> np.ndarray:
     cx = int(round(center_norm[0] * (p.nx - 1)))
     cy = int(round(center_norm[1] * (p.ny - 1)))
@@ -288,3 +300,28 @@ def multi_seed_robustness(
             }
         )
     return rows
+
+
+def summarize_reference_band(
+    values: Sequence[float],
+    *,
+    label: str,
+    lower_mm_min: float,
+    upper_mm_min: float,
+) -> ReferenceBandSummary:
+    finite = np.asarray(values, dtype=float)
+    finite = finite[np.isfinite(finite)]
+    if finite.size == 0:
+        raise ValueError(f"No finite values provided for reference band summary '{label}'.")
+
+    within = (finite >= lower_mm_min) & (finite <= upper_mm_min)
+    return ReferenceBandSummary(
+        label=label,
+        lower_mm_min=float(lower_mm_min),
+        upper_mm_min=float(upper_mm_min),
+        n_total=int(finite.size),
+        n_within=int(np.sum(within)),
+        observed_min_mm_min=float(np.min(finite)),
+        observed_max_mm_min=float(np.max(finite)),
+        observed_mean_mm_min=float(np.mean(finite)),
+    )

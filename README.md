@@ -1,6 +1,6 @@
 # CSD Sulcus Model
 
-This repository contains a reproducible cortical spreading depolarization (CSD) modeling workflow for studying sulcal slowing in folded cortex. The project now supports both isotropic scalar coupling reductions and orientation-aware tensor transport, together with manuscript-ready figures, supplementary analyses, and release metadata for GitHub and Zenodo archiving.
+This repository contains a reproducible cortical spreading depolarization (CSD) modeling workflow for studying sulcal slowing in folded cortex. The project supports isotropic scalar coupling reductions, orientation-aware tensor transport, a physiology-constrained tensor extension tied to conservative cortical anisotropy priors, and a reduced biophysical potassium-buffer SD model for checking whether the scalar-versus-tensor ordering survives beyond Barkley kinetics.
 
 ## Repository Contents
 
@@ -8,7 +8,8 @@ This repository contains a reproducible cortical spreading depolarization (CSD) 
 - `scripts/run_study.py`: baseline study runner
 - `scripts/run_extended_study.py`: manuscript-scale scalar-versus-tensor sensitivity study
 - `scripts/run_supplementary_analyses.py`: supplementary analyses such as eta sensitivity and grid convergence
-- `tests/test_study.py`: smoke tests for determinism, monotonic slowing, and tensor positivity
+- `scripts/run_physiology_extension.py`: physiology-constrained tensor and reduced biophysical SD extension
+- `tests/test_study.py`: smoke tests for determinism, monotonic slowing, tensor positivity, and physiology-extension ordering
 - `manuscript/reframed_submission.tex`: current submission manuscript
 - `manuscript/figures/`: manuscript-local figure assets for Overleaf or journal upload
 - `outputs/`: generated numerical summaries, CSV tables, and figure exports
@@ -59,12 +60,26 @@ Supplementary analyses:
 python scripts/run_supplementary_analyses.py
 ```
 
+Quick physiology-constrained extension:
+
+```bash
+python scripts/run_physiology_extension.py --quick
+```
+
+Full physiology-constrained extension:
+
+```bash
+python scripts/run_physiology_extension.py
+```
+
 ## Key Outputs
 
 - `outputs/extended_full/extended_summary.md`: full manuscript-scale headline results
 - `outputs/extended_full/extended_results.csv`: full scalar/tensor sensitivity grid
 - `outputs/supplementary/grid_convergence.csv`: grid-convergence study
 - `outputs/supplementary/eta_sensitivity.csv`: tensor tangential-attenuation sensitivity
+- `outputs/physiology_extension_quick/physiology_summary.md`: quick extension headline results
+- `outputs/physiology_extension_quick/physiology_representative.csv`: representative Barkley and potassium-buffer comparisons
 - `manuscript/reframed_submission.tex`: current submission draft with local figure paths
 
 ## Testing

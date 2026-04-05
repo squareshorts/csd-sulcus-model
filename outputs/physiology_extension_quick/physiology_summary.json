@@ -1,0 +1,187 @@
+{
+  "mode": "quick",
+  "representative_rows": [
+    {
+      "kinetics_model": "barkley",
+      "case_label": "scalar",
+      "diffusion_mode": "scalar",
+      "tensor_constraint_mode": "manual",
+      "resolved_eta": 1.0,
+      "achieved_tangent_normal_ratio": 1.0,
+      "electrode_speed_mm_min": 2.562062937062937,
+      "delta_speed_mm_min": -0.4379370629370629,
+      "delay_sulcus_s": 6.66497441146366,
+      "delay_upstream_s": 0.10799727055612607,
+      "delay_downstream_s": 12.141978846809963,
+      "sulcus_local_speed_mm_min": 2.6071829248531833,
+      "control_sulcus_local_speed_mm_min": 3.077123765365128
+    },
+    {
+      "kinetics_model": "barkley",
+      "case_label": "tensor_manual",
+      "diffusion_mode": "tensor",
+      "tensor_constraint_mode": "manual",
+      "resolved_eta": 0.4,
+      "achieved_tangent_normal_ratio": 1.2,
+      "electrode_speed_mm_min": 2.6775274056029232,
+      "delta_speed_mm_min": -0.32247259439707676,
+      "delay_sulcus_s": 5.15301262367791,
+      "delay_upstream_s": 0.061712726032077114,
+      "delay_downstream_s": 10.090030706243596,
+      "sulcus_local_speed_mm_min": 2.6856230930348586,
+      "control_sulcus_local_speed_mm_min": 3.077123765365128
+    },
+    {
+      "kinetics_model": "barkley",
+      "case_label": "tensor_microstructure",
+      "diffusion_mode": "tensor",
+      "tensor_constraint_mode": "cortical_microstructure",
+      "resolved_eta": 0.5500000000000003,
+      "achieved_tangent_normal_ratio": 1.15,
+      "electrode_speed_mm_min": 2.651688781664656,
+      "delta_speed_mm_min": -0.34831121833534384,
+      "delay_sulcus_s": 5.538717161378372,
+      "delay_upstream_s": 0.07714090754009106,
+      "delay_downstream_s": 10.568304332992149,
+      "sulcus_local_speed_mm_min": 2.6618018042167817,
+      "control_sulcus_local_speed_mm_min": 3.077123765365128
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "case_label": "scalar",
+      "diffusion_mode": "scalar",
+      "tensor_constraint_mode": "manual",
+      "resolved_eta": 1.0,
+      "achieved_tangent_normal_ratio": 1.0,
+      "electrode_speed_mm_min": 2.5701268536716095,
+      "delta_speed_mm_min": -0.42987314632839047,
+      "delay_sulcus_s": 5.080905109489052,
+      "delay_upstream_s": 0.028133472367048995,
+      "delay_downstream_s": 9.15463190823776,
+      "sulcus_local_speed_mm_min": 2.463047096957931,
+      "control_sulcus_local_speed_mm_min": 2.831659638238034
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "case_label": "tensor_manual",
+      "diffusion_mode": "tensor",
+      "tensor_constraint_mode": "manual",
+      "resolved_eta": 0.4,
+      "achieved_tangent_normal_ratio": 1.2,
+      "electrode_speed_mm_min": 2.654548809743495,
+      "delta_speed_mm_min": -0.34545119025650495,
+      "delay_sulcus_s": 3.6995516162669464,
+      "delay_upstream_s": 0.011253388946819598,
+      "delay_downstream_s": 7.567904066736176,
+      "sulcus_local_speed_mm_min": 2.545660598186342,
+      "control_sulcus_local_speed_mm_min": 2.831659638238034
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "case_label": "tensor_microstructure",
+      "diffusion_mode": "tensor",
+      "tensor_constraint_mode": "cortical_microstructure",
+      "resolved_eta": 0.5500000000000003,
+      "achieved_tangent_normal_ratio": 1.15,
+      "electrode_speed_mm_min": 2.651612903225806,
+      "delta_speed_mm_min": -0.3483870967741942,
+      "delay_sulcus_s": 4.037153284671533,
+      "delay_upstream_s": 0.016880083420225844,
+      "delay_downstream_s": 7.905505735140778,
+      "sulcus_local_speed_mm_min": 2.526510772542642,
+      "control_sulcus_local_speed_mm_min": 2.831659638238034
+    }
+  ],
+  "microstructure_sweep": [
+    {
+      "kinetics_model": "barkley",
+      "target_tangent_normal_ratio": 1.05,
+      "resolved_eta": 0.8499999999999996,
+      "electrode_speed_mm_min": 2.5938053097345133,
+      "anisotropy_gain_mm_min": 0.0317423726715762
+    },
+    {
+      "kinetics_model": "barkley",
+      "target_tangent_normal_ratio": 1.1,
+      "resolved_eta": 0.6999999999999997,
+      "electrode_speed_mm_min": 2.6255598686174975,
+      "anisotropy_gain_mm_min": 0.06349693155456038
+    },
+    {
+      "kinetics_model": "barkley",
+      "target_tangent_normal_ratio": 1.15,
+      "resolved_eta": 0.5500000000000003,
+      "electrode_speed_mm_min": 2.651688781664656,
+      "anisotropy_gain_mm_min": 0.08962584460171907
+    },
+    {
+      "kinetics_model": "barkley",
+      "target_tangent_normal_ratio": 1.2,
+      "resolved_eta": 0.40000000000000036,
+      "electrode_speed_mm_min": 2.6775274056029232,
+      "anisotropy_gain_mm_min": 0.11546446853998615
+    },
+    {
+      "kinetics_model": "barkley",
+      "target_tangent_normal_ratio": 1.25,
+      "resolved_eta": 0.25,
+      "electrode_speed_mm_min": 2.7013824884792625,
+      "anisotropy_gain_mm_min": 0.13931955141632546
+    },
+    {
+      "kinetics_model": "barkley",
+      "target_tangent_normal_ratio": 1.3,
+      "resolved_eta": 0.09999999999999964,
+      "electrode_speed_mm_min": 2.7282035370772575,
+      "anisotropy_gain_mm_min": 0.1661406000143204
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "target_tangent_normal_ratio": 1.05,
+      "resolved_eta": 0.8499999999999996,
+      "electrode_speed_mm_min": 2.5839770073648287,
+      "anisotropy_gain_mm_min": 0.01385015369321918
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "target_tangent_normal_ratio": 1.1,
+      "resolved_eta": 0.6999999999999997,
+      "electrode_speed_mm_min": 2.6121300163428365,
+      "anisotropy_gain_mm_min": 0.042003162671226946
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "target_tangent_normal_ratio": 1.15,
+      "resolved_eta": 0.5500000000000003,
+      "electrode_speed_mm_min": 2.651612903225806,
+      "anisotropy_gain_mm_min": 0.08148604955419625
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "target_tangent_normal_ratio": 1.2,
+      "resolved_eta": 0.40000000000000036,
+      "electrode_speed_mm_min": 2.654548809743495,
+      "anisotropy_gain_mm_min": 0.08442195607188552
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "target_tangent_normal_ratio": 1.25,
+      "resolved_eta": 0.25,
+      "electrode_speed_mm_min": 2.672798216276477,
+      "anisotropy_gain_mm_min": 0.10267136260486742
+    },
+    {
+      "kinetics_model": "potassium_buffer",
+      "target_tangent_normal_ratio": 1.3,
+      "resolved_eta": 0.09999999999999964,
+      "electrode_speed_mm_min": 2.6918038922155683,
+      "anisotropy_gain_mm_min": 0.12167703854395873
+    }
+  ],
+  "anisotropy_gains": {
+    "barkley:tensor_manual": 0.11546446853998615,
+    "barkley:tensor_microstructure": 0.08962584460171907,
+    "potassium_buffer:tensor_manual": 0.08442195607188552,
+    "potassium_buffer:tensor_microstructure": 0.08148604955419625
+  }
+}

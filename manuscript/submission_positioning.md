@@ -2,16 +2,16 @@
 
 ## Core claim
 
-Localized sulcal slowing of CSD is robust across model families, but isotropic coupling reductions overestimate its magnitude relative to orientation-aware tensor transport.
+Sulcal geometry slows CSD across transport and kinetics families, but isotropic coupling reductions overestimate the magnitude of that slowing relative to orientation-aware tensor transport.
 
 ## Why this is stronger
 
-- It is a robustness paper, not a single-mechanism paper.
-- It directly addresses anisotropy instead of listing it as a limitation.
-- It turns a minimal isotropic model into one member of a comparison set rather than the sole evidentiary base.
-- It gives a sharper computational claim that reviewers can test and disagree with at the model-structure level.
+- It is a robustness paper rather than a single-mechanism paper.
+- It tests whether the sulcal effect survives both a transport change and a kinetics change.
+- It turns isotropic attenuation into an upper-bound model rather than the only evidentiary base.
+- It gives reviewers a sharper computational claim: the sign of sulcal slowing is robust, but its amplitude depends on how directional structure is represented.
 
-## Full manuscript-scale message
+## Full manuscript-scale scalar-versus-tensor message
 
 - Representative scalar-flat case: 2.582 mm/min
 - Representative tensor-flat case: 2.689 mm/min
@@ -20,23 +20,29 @@ Localized sulcal slowing of CSD is robust across model families, but isotropic c
 - Mean tensor minus scalar gain across the full grid: +0.062 mm/min for flat profiles and +0.057 mm/min for Gaussian profiles
 - Strongest slowing in the full grid: scalar-flat, width 5.5 mm, g = 0.75, with delta speed = -0.448 mm/min
 
+## Physiology-extension message
+
+Quick representative runs show the same ordering after both extensions:
+
+- Barkley scalar: 2.562 mm/min
+- Barkley microstructure-constrained tensor: 2.652 mm/min
+- Potassium-buffer scalar: 2.570 mm/min
+- Potassium-buffer microstructure-constrained tensor: 2.652 mm/min
+- Positive tensor-minus-scalar gain across the full microstructure sweep in both kinetics families
+
 ## Recommended framing
 
-Suggested title:
-Localized sulcal slowing of cortical spreading depolarization persists in orientation-aware tensor coupling models, while isotropic reductions overestimate its magnitude
-
 Suggested contribution statement:
-We show that sulcal delays are robust to substantial changes in model structure, but that their amplitude depends strongly on whether coupling loss is treated isotropically or with direction-aware tensor transport.
+We show that sulcal delays are robust to substantial changes in model structure. They persist when tensor transport is constrained to modest cortex-like anisotropy and when Barkley kinetics are replaced with a reduced potassium-buffer SD model, but their amplitude is systematically larger in matched isotropic scalar models.
 
-## What is already submission-ready
+## What is already in place
 
 - The full manuscript-scale scalar-versus-tensor grid has been run.
-- The representative table now has full-resolution numbers.
-- The main heatmaps and the local-speed triptych support the manuscript claim visually.
+- The physiology-constrained tensor extension is implemented in `scripts/run_physiology_extension.py`.
+- A reduced potassium-buffer SD model reproduces the scalar-versus-tensor ordering in quick representative runs.
+- The main heatmaps, local-speed triptych, and physiology-extension figures all support the manuscript claim visually.
 
-## Highest-value next upgrade after submission
+## Highest-value next upgrade
 
-- Add a targeted sweep over `tensor_tangent_attenuation_ratio` to show how anisotropy strength changes the moderation effect.
-- Polish journal-specific formatting and, if desired, add a targeted tensor-ratio sensitivity appendix.
-
-
+- Run the physiology extension at manuscript scale and fold those results into the main manuscript.
+- Add a short Methods/Results subsection using the literature-backed text in `manuscript/physiology_extension_notes.md`.

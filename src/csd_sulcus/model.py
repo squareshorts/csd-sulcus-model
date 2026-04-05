@@ -35,6 +35,22 @@ class Params:
 
     diffusion_mode: str = "scalar"
     tensor_tangent_attenuation_ratio: float = 0.40
+    tensor_constraint_mode: str = "manual"
+    microstructure_target_tangent_normal_ratio: float = 1.15
+    microstructure_ratio_min: float = 1.05
+    microstructure_ratio_max: float = 1.30
+
+    kinetics_model: str = "barkley"
+    k_rest: float = 3.5
+    k_peak: float = 60.0
+    k_threshold: float = 9.0
+    k_threshold_slope: float = 1.5
+    k_release_rate: float = 0.16
+    k_clearance_rate: float = 0.040
+    k_buffer_tau_s: float = 40.0
+    k_buffer_depletion_rate: float = 0.18
+    stim_k: float = 30.0
+    k_arrival_threshold: float = 10.0
 
     stim_radius_mm: float = 1.2
     stim_u: float = 0.95
@@ -129,6 +145,29 @@ def build_coupling_weight(p: Params, dipole_on: bool) -> tuple[np.ndarray, np.nd
     return weight, sulc_mask, phi
 
 
+def resolve_tensor_tangent_attenuation_ratio(p: Params) -> float:
+    mode = p.tensor_constraint_mode.lower()
+    if mode in {"manual", "none"}:
+        return float(np.clip(p.tensor_tangent_attenuation_ratio, 0.0, 1.0))
+
+    if mode not in {"cortical_microstructure", "cortical_gray_matter"}:
+        raise ValueError(f"Unsupported tensor_constraint_mode: {p.tensor_constraint_mode}")
+
+    target_ratio = float(
+        np.clip(
+            p.microstructure_target_tangent_normal_ratio,
+            p.microstructure_ratio_min,
+            p.microstructure_ratio_max,
+        )
+    )
+    if np.isclose(p.g_gyrus, p.g_sulcus_min):
+        return 1.0
+
+    g_tangent_min = np.clip(target_ratio * p.g_sulcus_min, p.g_sulcus_min, p.g_gyrus)
+    eta = (p.g_gyrus - g_tangent_min) / (p.g_gyrus - p.g_sulcus_min)
+    return float(np.clip(eta, 0.0, 1.0))
+
+
 def build_diffusion_fields(
     p: Params,
     dipole_on: bool,
@@ -149,7 +188,7 @@ def build_diffusion_fields(
         nx = ty
         ny = -tx
 
-        tangent_ratio = float(np.clip(p.tensor_tangent_attenuation_ratio, 0.0, 1.0))
+        tangent_ratio = resolve_tensor_tangent_attenuation_ratio(p)
         g_tangent = p.g_gyrus - tangent_ratio * (p.g_gyrus - p.g_sulcus_min) * weight
 
         dxx = p.D0 * (g_tangent * tx * tx + g_normal * nx * nx)
@@ -216,6 +255,40 @@ def barkley_step(
     return u_new, v_new
 
 
+def potassium_buffer_step(
+    k: np.ndarray,
+    buffer_available: np.ndarray,
+    dxx: np.ndarray,
+    dxy: np.ndarray,
+    dyy: np.ndarray,
+    p: Params,
+) -> tuple[np.ndarray, np.ndarray]:
+    activation = 0.5 * (1.0 + np.tanh((k - p.k_threshold) / p.k_threshold_slope))
+    release = p.k_release_rate * activation * np.maximum(p.k_peak - k, 0.0)
+    clearance = p.k_clearance_rate * buffer_available * np.maximum(k - p.k_rest, 0.0)
+    diff = divergence_tensor_flux(k, dxx, dxy, dyy, p.dx)
+
+    k_new = k + p.dt * (release - clearance + diff)
+    buffer_new = buffer_available + p.dt * (
+        (1.0 - buffer_available) / p.k_buffer_tau_s - p.k_buffer_depletion_rate * activation * buffer_available
+    )
+
+    np.clip(k_new, p.k_rest, p.k_peak, out=k_new)
+    np.clip(buffer_new, 0.05, 1.25, out=buffer_new)
+    return k_new, buffer_new
+
+
+def initialise_state(p: Params) -> tuple[np.ndarray, np.ndarray]:
+    kinetics_model = p.kinetics_model.lower()
+    if kinetics_model == "barkley":
+        return np.zeros((p.nx, p.ny), dtype=float), np.zeros((p.nx, p.ny), dtype=float)
+    if kinetics_model == "potassium_buffer":
+        u = np.full((p.nx, p.ny), p.k_rest, dtype=float)
+        v = np.ones((p.nx, p.ny), dtype=float)
+        return u, v
+    raise ValueError(f"Unsupported kinetics_model: {p.kinetics_model}")
+
+
 def apply_stimulus(u: np.ndarray, p: Params) -> np.ndarray:
     cx = int(round(p.stim_location[0] * (p.nx - 1)))
     cy = int(round(p.stim_location[1] * (p.ny - 1)))
@@ -224,8 +297,18 @@ def apply_stimulus(u: np.ndarray, p: Params) -> np.ndarray:
     mask = (X - cx) ** 2 + (Y - cy) ** 2 <= rr**2
 
     u2 = u.copy()
-    u2[mask] = np.maximum(u2[mask], p.stim_u)
+    stim_value = p.stim_u if p.kinetics_model.lower() == "barkley" else p.stim_k
+    u2[mask] = np.maximum(u2[mask], stim_value)
     return u2
+
+
+def is_arrival_crossed(u: np.ndarray, p: Params) -> np.ndarray:
+    kinetics_model = p.kinetics_model.lower()
+    if kinetics_model == "barkley":
+        return u >= p.u_threshold
+    if kinetics_model == "potassium_buffer":
+        return u >= p.k_arrival_threshold
+    raise ValueError(f"Unsupported kinetics_model: {p.kinetics_model}")
 
 
 def _snapshot_indices(snapshot_times: Sequence[float], dt: float, steps: int) -> tuple[np.ndarray, np.ndarray]:
@@ -246,8 +329,7 @@ def run_simulation(
 ) -> SimulationOutput:
     g_field, sulc_mask, phi, dxx, dxy, dyy, g_tangent, g_normal = build_diffusion_fields(p, dipole_on)
 
-    u = np.zeros((p.nx, p.ny), dtype=float)
-    v = np.zeros((p.nx, p.ny), dtype=float)
+    u, v = initialise_state(p)
     u = apply_stimulus(u, p)
 
     steps = int(round(p.final_t_end / p.dt))
@@ -257,6 +339,7 @@ def run_simulation(
 
     arr = np.full((p.nx, p.ny), np.nan, dtype=float)
     uncrossed = np.ones((p.nx, p.ny), dtype=bool)
+    kinetics_model = p.kinetics_model.lower()
 
     for k in range(steps + 1):
         t = k * p.dt
@@ -266,12 +349,17 @@ def run_simulation(
             snap_cursor += 1
 
         if t >= p.min_arrival_t:
-            crossed = uncrossed & (u >= p.u_threshold)
+            crossed = uncrossed & is_arrival_crossed(u, p)
             arr[crossed] = t
             uncrossed[crossed] = False
 
         if k < steps:
-            u, v = barkley_step(u, v, dxx, dxy, dyy, p)
+            if kinetics_model == "barkley":
+                u, v = barkley_step(u, v, dxx, dxy, dyy, p)
+            elif kinetics_model == "potassium_buffer":
+                u, v = potassium_buffer_step(u, v, dxx, dxy, dyy, p)
+            else:
+                raise ValueError(f"Unsupported kinetics_model: {p.kinetics_model}")
 
     return SimulationOutput(
         arr=arr,
@@ -284,3 +372,4 @@ def run_simulation(
         g_tangent=g_tangent,
         g_normal=g_normal,
     )
+

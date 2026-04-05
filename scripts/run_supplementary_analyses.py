@@ -27,6 +27,15 @@ sys.path.insert(0, str(ROOT / "src"))
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+plt.rcParams.update({
+    "font.size": 12,
+    "axes.titlesize": 14,
+    "axes.labelsize": 12,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 11,
+    "figure.titlesize": 14,
+})
 
 from csd_sulcus.analysis import (
     electrode_speed_mm_min,
@@ -132,16 +141,18 @@ def grid_convergence(output_dir: Path) -> list[dict]:
 
     axes[0].plot(dxs, [r["scalar_speed_mm_min"] for r in results], "s-", label="Scalar flat")
     axes[0].plot(dxs, [r["tensor_speed_mm_min"] for r in results], "o-", label="Tensor flat")
-    axes[0].set_xlabel("Spatial resolution dx (mm)")
-    axes[0].set_ylabel("Speed (mm/min)")
-    axes[0].set_title("Speed convergence")
+    axes[0].set_xlabel("Spatial resolution dx (mm)", fontsize=12)
+    axes[0].set_ylabel("Speed (mm/min)", fontsize=12)
+    axes[0].set_title("Speed convergence", fontsize=14)
     axes[0].invert_xaxis()
-    axes[0].legend()
+    axes[0].legend(fontsize=11)
+    axes[0].tick_params(axis="both", labelsize=10)
 
     axes[1].plot(dxs, [r["anisotropy_gain_mm_min"] for r in results], "D-", color="tab:green")
-    axes[1].set_xlabel("Spatial resolution dx (mm)")
-    axes[1].set_ylabel("Tensor − Scalar (mm/min)")
-    axes[1].set_title("Anisotropy gain convergence")
+    axes[1].set_xlabel("Spatial resolution dx (mm)", fontsize=12)
+    axes[1].set_ylabel("Tensor − Scalar (mm/min)", fontsize=12)
+    axes[1].set_title("Anisotropy gain convergence", fontsize=14)
+    axes[1].tick_params(axis="both", labelsize=10)
     axes[1].invert_xaxis()
 
     fig.savefig(output_dir / "fig_grid_convergence.png", dpi=300, bbox_inches="tight")
@@ -235,18 +246,20 @@ def eta_sensitivity(output_dir: Path) -> list[dict]:
     axes[0].plot(eta_vals, tensor_speeds, "o-", color="tab:blue", label="Tensor", lw=2)
     axes[0].axhline(scalar_speed, color="tab:red", ls="--", lw=1.5, label="Scalar (η = 1)")
     axes[0].axhline(3.0, color="gray", ls=":", lw=1, label="Control")
-    axes[0].set_xlabel("Tangential attenuation ratio η")
-    axes[0].set_ylabel("Virtual-electrode speed (mm/min)")
-    axes[0].set_title("Electrode speed vs η")
-    axes[0].legend(fontsize=9)
+    axes[0].set_xlabel("Tangential attenuation ratio η", fontsize=12)
+    axes[0].set_ylabel("Virtual-electrode speed (mm/min)", fontsize=12)
+    #axes[0].set_title("Electrode speed vs η")
+    axes[0].legend(fontsize=11)
+    axes[0].tick_params(axis="both", labelsize=10)
 
     # Panel B: Local sulcus speed
     axes[1].plot(eta_vals, tensor_locals, "s-", color="tab:blue", label="Tensor", lw=2)
     axes[1].axhline(scalar_sulcus_local, color="tab:red", ls="--", lw=1.5, label="Scalar")
-    axes[1].set_xlabel("Tangential attenuation ratio η")
-    axes[1].set_ylabel("Median sulcal local speed (mm/min)")
-    axes[1].set_title("Sulcal local speed vs η")
-    axes[1].legend(fontsize=9)
+    axes[1].set_xlabel("Tangential attenuation ratio η", fontsize=12)
+    axes[1].set_ylabel("Median sulcal local speed (mm/min)", fontsize=12)
+    #axes[1].set_title("Sulcal local speed vs η")
+    axes[1].legend(fontsize=11)
+    axes[1].tick_params(axis="both", labelsize=10)
 
     fig.savefig(output_dir / "fig_eta_sensitivity.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
@@ -260,7 +273,7 @@ def eta_sensitivity(output_dir: Path) -> list[dict]:
 def wavefront_snapshots(output_dir: Path) -> None:
     """Generate wavefront snapshot figure for control, scalar-flat, tensor-flat."""
     print("\n=== Wavefront Snapshots ===")
-    snapshot_times = [80.0, 140.0, 220.0]
+    snapshot_times = [12.0, 18.0, 24.0]
 
     base = Params(
         sulcus_width_mm=REP_WIDTH,
@@ -298,16 +311,17 @@ def wavefront_snapshots(output_dir: Path) -> None:
                 out.sulc_mask.T, levels=[0.5], colors="white", linewidths=0.8
             )
             if row == 0:
-                ax[row, col].set_title(label, fontsize=12, fontweight="bold")
+                ax[row, col].set_title(label, fontsize=14, fontweight="bold")
             if col == 0:
                 ax[row, col].set_ylabel(
-                    f"t = {out.snapshot_times[row]:.0f} s", fontsize=11
+                    f"t = {out.snapshot_times[row]:.0f} s", fontsize=13
                 )
             ax[row, col].set_xticks([])
             ax[row, col].set_yticks([])
 
     cbar = fig.colorbar(im, ax=ax.ravel().tolist(), shrink=0.85, pad=0.02)
-    cbar.set_label("Activator u", rotation=90)
+    cbar.set_label("Activator u", rotation=90, fontsize=12)
+    cbar.ax.tick_params(labelsize=10)
 
     # Scale bar on bottom-left panel
     bar_mm = 5.0
@@ -316,7 +330,7 @@ def wavefront_snapshots(output_dir: Path) -> None:
     ax[-1, 0].plot([x0, x0 + bar_px], [y0, y0], "w-", lw=3)
     ax[-1, 0].text(
         x0 + bar_px / 2, y0 + 5, f"{bar_mm:.0f} mm",
-        color="white", ha="center", va="bottom", fontsize=9,
+        color="white", ha="center", va="bottom", fontsize=11,
     )
 
     fig.savefig(output_dir / "fig_wavefront_snapshots.png", dpi=300, bbox_inches="tight")
@@ -441,6 +455,108 @@ def supplementary_table(output_dir: Path) -> None:
 
 
 # ------------------------------------------------------------------ #
+# 6. Biophysical Grid Convergence
+# ------------------------------------------------------------------ #
+def biophysical_grid_convergence(output_dir: Path) -> list[dict]:
+    """Run the calibrated K-buffer representative case at multiple resolutions."""
+    print("\n=== Biophysical (K-buffer) Grid Convergence ===")
+    resolutions = [
+        {"dx": 0.20, "dt": 0.004},
+        {"dx": 0.10, "dt": 0.002},
+        {"dx": 0.05, "dt": 0.001},
+    ]
+    results = []
+    for res in resolutions:
+        dx = res["dx"]
+        dt_val = res["dt"]
+        nx = int(round(LX_MM / dx)) + 1
+        ny = int(round(LY_MM / dx)) + 1
+        cfl = 0.01 * dt_val / (dx ** 2)
+        print(f"\n  dx={dx:.3f} mm  (grid {nx}x{ny}, dt={dt_val}, CFL={cfl:.4f})")
+
+        base = Params(
+            kinetics_model="potassium_buffer",
+            k_release_rate=0.16,
+            k_clearance_rate=0.040,
+            k_threshold=9.0,
+            k_arrival_threshold=10.0,
+            nx=nx, ny=ny, dx=dx, dt=dt_val,
+            final_t_end=120.0,
+            sulcus_width_mm=REP_WIDTH,
+            g_sulcus_min=REP_GMIN,
+            g_profile="flat",
+            g_smooth_mm=1.2,
+        )
+
+        t0 = time.time()
+        # Control
+        control = run_simulation(base, dipole_on=False)
+        fs = fixed_scale_from_control(control, base, E1, E2, R_MM)
+
+        # Scalar
+        p_scalar = dc.replace(base, diffusion_mode="scalar")
+        scalar_out = run_simulation(p_scalar, dipole_on=True)
+        scalar_meas = electrode_speed_mm_min(
+            scalar_out.arr, p_scalar, E1, E2, R_MM, fixed_scale=fs
+        )
+
+        # Tensor
+        p_tensor = dc.replace(base, diffusion_mode="tensor")
+        tensor_out = run_simulation(p_tensor, dipole_on=True)
+        tensor_meas = electrode_speed_mm_min(
+            tensor_out.arr, p_tensor, E1, E2, R_MM, fixed_scale=fs
+        )
+        elapsed = time.time() - t0
+
+        delta = tensor_meas.scaled_speed_mm_min - scalar_meas.scaled_speed_mm_min
+        row = {
+            "dx_mm": dx,
+            "dt_s": dt_val,
+            "nx": nx,
+            "ny": ny,
+            "CFL": round(cfl, 5),
+            "scalar_speed_mm_min": round(scalar_meas.scaled_speed_mm_min, 4),
+            "tensor_speed_mm_min": round(tensor_meas.scaled_speed_mm_min, 4),
+            "anisotropy_gain_mm_min": round(delta, 4),
+            "elapsed_s": round(elapsed, 1),
+        }
+        results.append(row)
+        print(
+            f"    scalar={row['scalar_speed_mm_min']:.4f}, "
+            f"tensor={row['tensor_speed_mm_min']:.4f}, "
+            f"Δ={row['anisotropy_gain_mm_min']:.4f} mm/min  "
+            f"({elapsed:.1f}s)"
+        )
+
+    _save_csv(output_dir / "biophysical_grid_convergence.csv", results)
+
+    # Convergence plot
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
+    dxs = [r["dx_mm"] for r in results]
+
+    axes[0].plot(dxs, [r["scalar_speed_mm_min"] for r in results], "s-", label="Scalar flat (K-buffer)")
+    axes[0].plot(dxs, [r["tensor_speed_mm_min"] for r in results], "o-", label="Tensor flat (K-buffer)")
+    axes[0].set_xlabel("Spatial resolution dx (mm)", fontsize=12)
+    axes[0].set_ylabel("Speed (mm/min)", fontsize=12)
+    axes[0].set_title("K-buffer speed convergence", fontsize=14)
+    axes[0].invert_xaxis()
+    axes[0].legend(fontsize=11)
+    axes[0].tick_params(axis="both", labelsize=10)
+
+    axes[1].plot(dxs, [r["anisotropy_gain_mm_min"] for r in results], "D-", color="tab:green")
+    axes[1].set_xlabel("Spatial resolution dx (mm)", fontsize=12)
+    axes[1].set_ylabel("Tensor − Scalar (mm/min)", fontsize=12)
+    axes[1].set_title("K-buffer anisotropy gain convergence", fontsize=14)
+    axes[1].tick_params(axis="both", labelsize=10)
+    axes[1].invert_xaxis()
+
+    fig.savefig(output_dir / "fig_biophysical_grid_convergence.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print("  Saved biophysical_grid_convergence.csv + fig_biophysical_grid_convergence.png")
+    return results
+
+
+# ------------------------------------------------------------------ #
 # Main
 # ------------------------------------------------------------------ #
 def main() -> None:
@@ -461,8 +577,11 @@ def main() -> None:
     # 4. Wavefront snapshots
     wavefront_snapshots(output_dir)
 
-    # 5. Grid convergence (slowest, runs last)
+    # 5. Grid convergence — Barkley (slowest single block)
     convergence_results = grid_convergence(output_dir)
+
+    # 6. Grid convergence — Biophysical (K-buffer)
+    bio_convergence_results = biophysical_grid_convergence(output_dir)
 
     # Summary
     elapsed_total = time.time() - t_start
@@ -475,6 +594,7 @@ def main() -> None:
         "statistical_tests": stat_results,
         "eta_sensitivity": eta_results,
         "grid_convergence": convergence_results,
+        "biophysical_grid_convergence": bio_convergence_results,
         "total_elapsed_s": round(elapsed_total, 1),
     }
     (output_dir / "supplementary_summary.json").write_text(

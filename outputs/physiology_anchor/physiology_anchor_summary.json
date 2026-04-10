@@ -1,0 +1,158 @@
+{
+  "accepted_candidates": 63,
+  "metric_summary": [
+    {
+      "metric_key": "control_speed_mm_min",
+      "metric_label": "Control",
+      "range_min_mm_min": 2.9999999999999996,
+      "range_max_mm_min": 3.0000000000000004,
+      "mean_mm_min": 3.0,
+      "sd_mm_min": 1.127987721007444e-16
+    },
+    {
+      "metric_key": "scalar_speed_mm_min",
+      "metric_label": "Scalar",
+      "range_min_mm_min": 2.6062325869363323,
+      "range_max_mm_min": 2.750263643553916,
+      "mean_mm_min": 2.634950762409619,
+      "sd_mm_min": 0.04285256524075578
+    },
+    {
+      "metric_key": "tensor_speed_mm_min",
+      "metric_label": "Tensor",
+      "range_min_mm_min": 2.6830615605247785,
+      "range_max_mm_min": 2.7924111624171863,
+      "mean_mm_min": 2.705895810561091,
+      "sd_mm_min": 0.032807548802971355
+    },
+    {
+      "metric_key": "tensor_minus_scalar_mm_min",
+      "metric_label": "Tensor \u2212 scalar",
+      "range_min_mm_min": 0.042147518863270506,
+      "range_max_mm_min": 0.07684986224391954,
+      "mean_mm_min": 0.07094504815147265,
+      "sd_mm_min": 0.010150835538977039
+    }
+  ],
+  "band_summary": [
+    {
+      "band_key": "experimental_cortex",
+      "band_label": "Experimental cortex (broad)",
+      "citation": "Lauritzen et al. 2011",
+      "lower_mm_min": 2.0,
+      "upper_mm_min": 5.0,
+      "metric_key": "control_speed_mm_min",
+      "metric_label": "Control",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "experimental_cortex",
+      "band_label": "Experimental cortex (broad)",
+      "citation": "Lauritzen et al. 2011",
+      "lower_mm_min": 2.0,
+      "upper_mm_min": 5.0,
+      "metric_key": "scalar_speed_mm_min",
+      "metric_label": "Scalar",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "experimental_cortex",
+      "band_label": "Experimental cortex (broad)",
+      "citation": "Lauritzen et al. 2011",
+      "lower_mm_min": 2.0,
+      "upper_mm_min": 5.0,
+      "metric_key": "tensor_speed_mm_min",
+      "metric_label": "Tensor",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "human_malignant_stroke",
+      "band_label": "Human malignant stroke (broad)",
+      "citation": "Woitzik et al. 2013",
+      "lower_mm_min": 1.7,
+      "upper_mm_min": 9.2,
+      "metric_key": "control_speed_mm_min",
+      "metric_label": "Control",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "human_malignant_stroke",
+      "band_label": "Human malignant stroke (broad)",
+      "citation": "Woitzik et al. 2013",
+      "lower_mm_min": 1.7,
+      "upper_mm_min": 9.2,
+      "metric_key": "scalar_speed_mm_min",
+      "metric_label": "Scalar",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "human_malignant_stroke",
+      "band_label": "Human malignant stroke (broad)",
+      "citation": "Woitzik et al. 2013",
+      "lower_mm_min": 1.7,
+      "upper_mm_min": 9.2,
+      "metric_key": "tensor_speed_mm_min",
+      "metric_label": "Tensor",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "controlled_recordings_narrow",
+      "band_label": "Controlled recordings (narrow)",
+      "citation": "Ayata & Lauritzen 2015; Dreier et al. 2017",
+      "lower_mm_min": 2.5,
+      "upper_mm_min": 4.5,
+      "metric_key": "control_speed_mm_min",
+      "metric_label": "Control",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "controlled_recordings_narrow",
+      "band_label": "Controlled recordings (narrow)",
+      "citation": "Ayata & Lauritzen 2015; Dreier et al. 2017",
+      "lower_mm_min": 2.5,
+      "upper_mm_min": 4.5,
+      "metric_key": "scalar_speed_mm_min",
+      "metric_label": "Scalar",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    },
+    {
+      "band_key": "controlled_recordings_narrow",
+      "band_label": "Controlled recordings (narrow)",
+      "citation": "Ayata & Lauritzen 2015; Dreier et al. 2017",
+      "lower_mm_min": 2.5,
+      "upper_mm_min": 4.5,
+      "metric_key": "tensor_speed_mm_min",
+      "metric_label": "Tensor",
+      "n_total": 63,
+      "n_within": 63,
+      "all_within": true
+    }
+  ],
+  "delay_summary": {
+    "n_total": 63,
+    "n_within_delay_band": 54,
+    "delay_band_lower_s": 10.0,
+    "delay_band_upper_s": 30.0,
+    "delay_citation": "Dreier et al. 2017",
+    "delay_min_s": 0.008152806727551365,
+    "delay_max_s": 16.220644931409225,
+    "delay_mean_s": 12.815399591128326,
+    "delay_sd_s": 5.350141068240836
+  }
+}

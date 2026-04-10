@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the software record below."
+title: "CSD Sulcus Model"
+type: software
+version: 0.2.0
+doi: 10.5281/zenodo.19410880
+license: "MIT"
+abstract: "Reproducible cortical spreading depolarization modeling with scalar and orientation-aware tensor coupling in folded cortical geometry."
+authors:
+  - family-names: "Pereira"
+    given-names: "Antonio"
+    orcid: "https://orcid.org/0000-0002-0808-1058"
+    affiliation: "Institute of Technology, Federal University of Para (UFPA)"
+    email: "apereira@ufpa.br"
+  - family-names: "Guedes"
+    given-names: "Rubem"
+    orcid: "https://orcid.org/0000-0002-2396-4019"
+    affiliation: "Department of Nutrition, Federal University of Pernambuco (UFPE)"
+    email: "guedes.rca@gmail.com"
+repository-code: "https://github.com/squareshorts/csd-sulcus-model"
+url: "https://github.com/squareshorts/csd-sulcus-model"
+keywords:
+  - cortical spreading depolarization
+  - spreading depression
+  - sulcus
+  - tensor diffusion
+  - reaction diffusion
+  - computational neuroscience

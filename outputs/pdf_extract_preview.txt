@@ -1,0 +1,290 @@
+A dipole-motivated reduction in effective coupling
+predicts localized sulcal slowing of cortical spreading
+depolarization in an excitable-medium model
+Antonio Pereira1 and Rubem Guedes 2
+1Institute of Technology, Federal University of Par´ a (UFPA)
+2Department of Nutrition, Federal University of Pernambuco (UFPE)
+Abstract
+Cortical spreading depolarization (CSD) is a slow reaction–diffusion-like wave that
+propagates through the cortex and is implicated in migraine aura and acute brain in-
+jury. However, how gyral–sulcal geometry modulates CSD conduction remains incom-
+pletely characterized. Here, we test a minimal, experimentally motivated hypothesis:
+that reduced extracellular field strength in sulcal banks due to dipole attenuation can be
+represented at the mesoscale as a local reduction ineffective spatial coupling(modeled
+as a reduced diffusion coefficient) within the sulcus. We simulate an excitable-medium
+reaction–diffusion system (Barkley kinetics) on a two-dimensional cortical sheet con-
+taining a curved sulcus and quantify propagation using arrival-time maps and a virtual-
+electrode velocity metric. Calibrating the control condition to a canonical gyral speed
+of 3.00 mm/min, reducing the sulcal coupling tog sulcus = 0.75 decreases conduction
+to 2.579 mm/min (∆v=−0.4208 mm/min,−14.03%). A parameter sweep shows a
+smooth, monotonic dependence of velocity ong sulcus, with magnitudes consistent with
+1
+the theoretical scalingv∝
+√
+Dfor excitable reaction–diffusion fronts. The delay is
+spatially confined to the sulcal compartment and does not fragment the wavefront.
+These results provide a parsimonious mechanistic link between sulcal dipole attenua-
+tion (a measurement- and field-relevant anatomical property) and a testable prediction
+of localized CSD conduction delays.
+Keywords:cortical spreading depolarization, spreading depression, sulcus, cortical folding,
+excitable media, reaction–diffusion, effective coupling
+1 Introduction
+Cortical spreading depolarization (CSD) is a propagating wave of near-complete depolariza-
+tion of neurons and glia, accompanied by a transient depression of ongoing activity (Mathew
+and Panonnummal, 2022). In migraine aura and in acute brain injury, CSD-like events
+propagate slowly across the cortex, typically on the order of a few millimeters per minute
+(Pietrobon and Moskowitz, 2014; Ayata and Lauritzen, 2015; Woitzik et al., 2013). While
+the cellular and ionic mechanisms of CSD have been extensively studied, it remains less
+clear how cortical folding geometry shapes CSD propagation at mesoscopic scales relevant
+to electrocorticography, optical imaging, and clinical monitoring.
+A consistent observation in MEG/EEG forward modeling is that extracellular fields
+and measured signal amplitudes depend strongly on cortical folding and source orientation
+(Ahlfors et al., 2010a,b). In sulcal banks, pyramidal-cell orientations can produce partial
+dipole cancellation, attenuating measurable fields relative to gyral crowns (Murakami and
+Okada, 2006; Ahlfors et al., 2010a; Muller et al., 2023; Reimann and Anastassiou, 2022).
+Although amplitude attenuation is not itself a measure of propagation speed, it motivates
+the broader hypothesis that sulcal geometry reduces effective long-range extracellular cou-
+pling. Such coupling contributes to the spatial spread of depolarization and ionic gradients
+during CSD, suggesting that sulcal folding may influence conduction indirectly via geometry-
+2
+dependent field attenuation.
+Prior computational and theoretical studies have shown that cortical geometry can influ-
+ence spreading-depression dynamics through curvature, anisotropy, and spatial heterogene-
+ity of coupling. Reaction–diffusion models on curved or folded substrates demonstrate that
+Gaussian curvature and geometric constraints can modulate wave speed, directionality, and
+stability (Tuckwell and Miura, 1978; Tuckwell, 2008; Chapuisat, 2007; Kenny et al., 2019).
+Patient-specific simulations further suggest that individual folding patterns and diffusivity
+tensors may shape clinically observed propagation profiles (Kroos et al., 2019). However,
+these approaches typically emphasize geometric curvature or anisotropic diffusion rather than
+explicitly linking sulcal cytoarchitecture and dipole attenuation to a localized reduction in
+effective coupling.
+To test this, we use a deliberately minimal excitable-medium model with a spatially
+varying coupling coefficient. We interpret the coupling reduction as a coarse-grained rep-
+resentation of sulcal dipole attenuation and related extracellular-field effects: a mesoscale
+parameterization, not a claim about literal molecular diffusivity. We then quantify how this
+localized coupling reduction changes arrival times and conduction velocity across a curved
+sulcus.
+2 Methods
+2.1 Reaction–diffusion model
+We simulated excitable-wave dynamics using the Barkley reaction–diffusion system (Barkley,
+1991):
+∂u
+∂t = 1
+ϵ u(1−u)
+
+u− v+b
+a
+
++∇ ·(D(x, y)∇u),(1)
+∂v
+∂t =u−v,(2)
+3
+with parameters in an excitable regime:
+a= 0.75, b= 0.02, ϵ= 0.02.
+Only the activator variableudiffuses. The computational domain was a 200×140 grid with
+dx= 0.1 mm anddt= 0.002 s. A circular stimulus (radius 1.2 mm) setu= 0.95 to initiate
+a wave.
+2.2 Sulcal geometry
+A curved sulcus was defined by a sinusoidal centerlinex c(y) and a fixed width of 4 mm:
+S={(x, y) :|x−x c(y)| ≤2 mm}.
+All simulations used identical geometry; onlyD(x, y) differed between conditions.
+2.3 Dipole-motivated effective coupling field
+We model spatial coupling as
+D(x, y) =D 0 g(x, y), D 0 = 0.01.
+Control condition:g(x, y) = 1 everywhere.
+Sulcal-reduction condition:g(x, y) =g sulcus <1 insideSandg(x, y) = 1 outside. To
+avoid numerical artifacts from a sharp discontinuity,g(x, y) was smoothly transitioned at
+the sulcal boundary (Gaussian smoothing over 1.2 mm) while enforcing the minimum value
+inside the sulcus.
+This parameterization is intended as amesoscale effective couplingmodel: a compact rep-
+resentation of geometry-dependent attenuation of extracellular-field-mediated interactions,
+rather than a claim about microscopic molecular diffusivity. Similar coarse-grained inter-
+4
+pretations of diffusion or coupling parameters have been employed in reaction–diffusion and
+network-based models of spreading depolarization to capture geometric and cytoarchitectural
+effects without explicitly modeling cellular-scale electrodynamics (Tuckwell and Miura, 1978;
+Chapuisat, 2007; Dahlem and Hadjikhani, 2009; Kenny et al., 2019).
+2.4 Numerical scheme and boundary conditions
+The divergence-form diffusion operator∇ ·(D∇u) was discretized using centered finite dif-
+ferences with face-averagedD(a standard flux-conservative scheme for spatially varying
+diffusion). No-flux (Neumann) boundary conditions were enforced.
+Simulations were run tot end = 400 s, storingu(x, y, t) every 10 integration steps for
+arrival-time analysis.
+The flux-conservative discretization ensures that spatial variations inD(x, y) alter prop-
+agation speed through local coupling strength rather than introducing numerical anisotropy
+or artificial reflections at the sulcal boundary.
+2.5 Arrival times and virtual-electrode velocity
+Arrival time at each grid point was defined as the first threshold crossingu≥0.5 after
+t≥0.5 s. Two circular regions of interest (“virtual electrodes”) of radius 1 mm were centered
+at normalized coordinates:
+E1 = (0.43,0.50), E 2 = (0.62,0.50).
+Lett 1 andt 2 be the median arrival times within each ROI. With Euclidean distanced=
+3.781 mm between ROI centers, the raw model velocity is
+vmodel = d
+t2 −t 1
+·60.
+5
+Figure 1:Geometry-dependent slowing in a sulcal compartment: arrival-time
+maps.Imposed coupling fieldg(x, y), arrival-time map in the sulcal-reduction condition,
+and the difference ∆trelative to control, showing spatially localized delays within the sulcus.
+Because the Barkley kinetics are nondimensional and not fit to a specific physiological time
+constant, we report velocities in physical units by applying a single global scaling factorα
+chosen so that the control condition matches 3.00 mm/min:
+vphys =α v model, α= 0.1248347.
+The sameαwas applied to all conditions; therefore the percent slowing is scale-invariant.
+3 Results
+3.1 Localized sulcal delays without wavefront disruption
+Both control and sulcal-reduction conditions produced smooth, continuous wavefronts that
+propagated across the domain. Arrival-time difference maps ∆t=t sulcus −t control revealed
+a spatially confined band of delayed propagation co-localized with the sulcal compartment,
+while gyral regions showed minimal change (Fig. 1).
+6
+Figure 2:Wavefront propagation across the sulcus.Representative wavefront snap-
+shots at matched times for control and sulcal-reduction conditions. White contours mark
+the sulcal boundary; the wavefront remains continuous but is delayed within the sulcus.
+7
+Table 1: Conduction velocity versus sulcal coupling reduction.v 0 = 3.00 mm/min is the
+calibrated control speed. The final column shows the theoretical predictionv 0
+√gsulcus.
+gsulcus v(mm/min) ∆v(mm/min) ∆v(%)v 0
+√gsulcus (mm/min)
+1.00 3.000 0.000 0.00% 3.000
+0.95 2.914 -0.086 -2.87% 2.924
+0.90 2.826 -0.174 -5.80% 2.846
+0.85 2.739 -0.261 -8.70% 2.766
+0.80 2.657 -0.343 -11.43% 2.683
+0.75 2.579 -0.421 -14.03% 2.598
+3.2 Reduction in velocity across the sulcus
+After calibrating the control condition to 3.00 mm/min, settingg sulcus = 0.75 reduced the
+conduction velocity to 2.579 mm/min:
+vcontrol = 3.000 mm/min, v 0.75 = 2.579 mm/min,∆v=−0.4208 mm/min (−14.03%).
+Virtual-electrode arrival curves show that the delay accumulates primarily when the wave-
+front traverses the sulcal region (Fig. 3A).
+3.3 Monotonic graded dependence on sulcal coupling and agree-
+ment withv∝
+√
+D
+Varying the sulcal coupling parameter produced a smooth, monotonic reduction in speed
+(Fig. 3B; Table 1). The observed magnitudes closely match the theoretical scalingv≈
+v0
+√gsulcus expected for excitable reaction–diffusion wavefronts, supporting the interpretation
+that the effect arises directly from reduced spatial coupling rather than threshold artifacts.
+3.4 Determinism and reproducibility
+The model is deterministic and does not include stochastic terms. Repeating simulations
+with different random-number seeds (without changing initial conditions or parameters)
+8
+Figure 3:Quantification of sulcal slowing.(A) Virtual-electrode arrival times across the
+sulcus for control and sulcal-reduction conditions. (B) Conduction velocity as a function of
+gsulcus, showing monotonic slowing with increasing coupling reduction.
+yields identical velocities and arrival-time maps up to numerical precision. Accordingly,
+we do not report inferential statistics across “seeds”; robustness is instead assessed via the
+parameter sweep in Table 1.
+4 Discussion
+We tested whether a localized reduction in effective spatial coupling within sulcal banks,
+motivated by dipole cancellation and the associated attenuation of extracellular fields in the
+folded cortex, is sufficient to produce localized slowing of CSD-like waves. This framing
+builds on experimental and optical-imaging evidence that CSD velocity varies across cortical
+regions with differing cytoarchitecture, laminar structure, and folding geometry (Vil´ agi et al.,
+2001; Fujita et al., 2016; Santos et al., 2014, 2017). In a minimal excitable-medium model,
+reducing sulcal coupling tog sulcus = 0.75 produced a 14.03% decrease in conduction velocity
+relative to the calibrated control. The delay was spatially confined to the sulcal compartment
+and did not destabilize or fragment the wavefront.
+This study does not claim that dipole cancellation has been experimentally shown to
+slow CSD. What is well established is that folding and source orientation shape extracellular
+fields and measured amplitudes in MEG/EEG (Murakami and Okada, 2006; Ahlfors et al.,
+9
+2010a; Muller et al., 2023). We use that anatomical/biophysical fact to motivate a testable
+mesoscale hypothesis: if effective long-range coupling is reduced in sulcal banks, conduction
+delays should occur locally. Our simulations show that this hypothesis is sufficient to generate
+delays of plausible magnitude.
+Folded geometry and curvature can influence spreading dynamics in other models (Kenny
+et al., 2019). Our contribution is complementary: we propose a specific, measurement- and
+cytoarchitecture-motivated mechanism (dipole attenuation represented as reduced effective
+coupling within sulci) and show that it yields (i) spatially localized delays and (ii) a quanti-
+tative speed scaling consistent withv∝
+√
+D.
+From this perspective, geometry- and cytoarchitecture-dependent modulation of effective
+coupling may also contribute to reported age-related changes in CSD propagation (Guedes
+and Abadie-Guedes, 2019), given that aging is associated with substantial remodeling of
+cortical thickness and folding at mesoscopic scales (Lockhart and DeCarli, 2014).
+The model predicts that sulcal banks should exhibit localized delays in CSD arrival times
+relative to nearby gyral crowns, even when the wavefront remains continuous. The monotonic
+dependence in Table 1 further predicts that any physiological or anatomical factor that deep-
+ens sulcal attenuation (effectively loweringg sulcus) should increase the delay approximately
+as √gsulcus.
+Notably, optical imaging and electrophysiological studies have reported regionally het-
+erogeneous CSD velocities associated with cytoarchitectural transitions and sulcal anatomy,
+including slower propagation in paleocortical or insular regions relative to the neocortex
+(Vil´ agi et al., 2001; Fujita et al., 2016). The present model predicts that such heterogeneity
+can arise even in the absence of metabolic or vascular differences, purely from geometry-
+dependent effective coupling.
+10
+4.1 Limitations
+We intentionally used a minimal excitable-medium model rather than a fully biophysical ionic
+model (Wei et al., 2014; Zandt et al., 2015). Therefore,D(x, y) should be interpreted as an
+effective coupling parameter at the mesoscale, not a microscopic diffusion constant. Future
+work should test whether the same geometry-dependent slowing persists in biophysical CSD
+models with explicit ion dynamics, layered cortex, anisotropy, and 3D folded surfaces.
+Code availability
+Code to reproduce simulations and figures will be made publicly available (e.g., via a ver-
+sioned repository) upon submission/acceptance.
+References
+Ahlfors, S. P., Han, J., Belliveau, J. W., and H¨ am¨ al¨ ainen, M. S. (2010a). Sensitivity of meg
+and eeg to source orientation.Brain Topography, 23(3):227–232.
+Ahlfors, S. P., Han, J., Lin, F.-H., Witzel, T., Belliveau, J. W., H¨ am¨ al¨ ainen, M. S., and
+Halgren, E. (2010b). Cancellation of eeg and meg signals generated by extended and
+distributed sources.Human brain mapping, 31(1):140–149.
+Ayata, C. and Lauritzen, M. (2015). Spreading depression and the pathophysiology of
+migraine.Nature Reviews Neurology, 11:637–651.
+Barkley, D. (1991). A model for fast computer simulation of waves in excitable media.
+Physica D, 49:61–70.
+Chapuisat, G. (2007). Discussion of a simple model of spreading depressions.ESAIM:
+Proceedings, 18:40–52.
+11
+Dahlem, M. A. and Hadjikhani, N. (2009). Migraine aura: retracting particle-like waves in
+weakly susceptible cortex.PloS one, 4(4):e5007.
+Fujita, S., Mizoguchi, N., Aoki, R., Cui, Y., et al. (2016). Cytoarchitecture-dependent
+decrease in propagation velocity of cortical spreading depression in the rat insular cortex
+revealed by optical imaging.Cerebral Cortex, 26(4):1580–1592.
+Guedes, R. C. A. and Abadie-Guedes, R. (2019). Brain aging and electrophysiological signal-
+ing: revisiting the spreading depression model.Frontiers in Aging Neuroscience, 11:136.
+Kenny, A., Plank, M. J., and David, T. (2019). The effects of cerebral curvature on cortical
+spreading depression.Journal of Theoretical Biology, 472:11–26.
+Kroos, J. M., de Tommaso, M., Stramaglia, S., Vecchio, E., Burdi, N., and Gerardo-Giorda,
+L. (2019). Clinical correlates of mathematical modeling of cortical spreading depression:
+Single-cases study.Brain and Behavior, 9(10):e01387.
+Lockhart, S. N. and DeCarli, C. (2014). Structural imaging measures of brain aging.Neu-
+ropsychology Review, 24(3):271–289.
+Mathew, A. A. and Panonnummal, R. (2022). Cortical spreading depression: culprits and
+mechanisms.Experimental brain research, 240(3):733–749.
+Muller, L., Shirinpour, S., and Reimann, M. W. (2023). Sources of meg/eeg signals in visual
+cortex depend on cortical folding and cytoarchitecture.eLife, 12:e80676.
+Murakami, S. and Okada, Y. (2006). Contributions of principal neocortical neurons to
+magnetoencephalography and electroencephalography signals.The Journal of Physiology,
+575(3):925–936.
+Pietrobon, D. and Moskowitz, M. A. (2014). Pathophysiology of migraine.Annual Review
+of Physiology, 76:365–391.
+12
+Reimann, M. W. and Anastassiou, C. A. (2022). The geometry of cortical circuits shapes
+extracellular field potentials.Nature Communications, 13:1805.
+Santos, E., S´ anchez-Porras, R., et al. (2017). Heterogeneous propagation of spreading depo-
+larizations in the lissencephalic and gyrencephalic brain.Journal of Cerebral Blood Flow
+and Metabolism, 37(9):3063–3076.
+Santos, E., Sch¨ oll, M., S´ anchez-Porras, R., and Dahlem, M. A. (2014). Radial, spiral and
+reverberating waves of spreading depolarization occur in the gyrencephalic brain.Neu-
+roImage, 99:244–255.
+Tuckwell, H. C. (2008). Mathematical modeling of spreading cortical depression: spiral and
+reverberating waves. InAIP Conference Proceedings, volume 1028, pages 160–166.
+Tuckwell, H. C. and Miura, R. M. (1978). A mathematical model for spreading cortical
+depression.Biophysical Journal, 23:257–276.
+Vil´ agi, I., Klapka, N., and Luhmann, H. J. (2001). Optical recording of spreading depression
+in rat neocortical slices.Brain Research, 898:288–296.
+Wei, Y., Ullah, G., and Schiff, S. J. (2014). Ion dynamics and the generation of spreading
+depression.Journal of Computational Neuroscience, 36:259–278.
+Woitzik, J., Hecht, N., Pinczolits, A., et al. (2013). Propagation of cortical spreading depo-
+larization in the human cortex after malignant stroke.Neurology, 80(12):1095–1102.
+Zandt, B., ten Haken, B., and van Putten, M. J. A. M. (2015). Time-dependent changes in
+tissue resistance and ion concentrations during spreading depolarization.The Journal of
+Neuroscience, 35(46):14435–14444.
+13

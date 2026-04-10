@@ -1,0 +1,83 @@
+{
+  "mesh_source": "synthetic_folded_strip",
+  "stimulus_vertex": 195,
+  "electrode_1_vertex": 265,
+  "electrode_2_vertex": 256,
+  "elapsed_s": 0.11,
+  "case_order": [
+    "surface_scalar_transport",
+    "surface_tensor_transport",
+    "surface_scalar_vascular",
+    "surface_tensor_vascular"
+  ],
+  "cases": [
+    {
+      "case_label": "surface_scalar_transport",
+      "case_title": "Family 1: geometry only",
+      "arrival_speed_mm_min": 4.30205153418261,
+      "e1_arrival_s": 14.156603371312789,
+      "e2_arrival_s": 88.85991039224027,
+      "cross_fold_delay_s": 74.70330702092748,
+      "e1_to_e2_geodesic_mm": 5.35629127629826,
+      "median_edge_speed_mm_min": 6.148692541408691,
+      "deep_edge_speed_mm_min": 5.479326503625134,
+      "shallow_edge_speed_mm_min": 6.454809849672548,
+      "min_perfusion": 0.6,
+      "min_oxygen": 1.0,
+      "crossed_fraction": 0.4527777777777778,
+      "vascular_feedback": false,
+      "anisotropy": false
+    },
+    {
+      "case_label": "surface_tensor_transport",
+      "case_title": "Family 2: geometry + anisotropy",
+      "arrival_speed_mm_min": 4.31726991694684,
+      "e1_arrival_s": 13.350648184239319,
+      "e2_arrival_s": 87.79062593878582,
+      "cross_fold_delay_s": 74.4399777545465,
+      "e1_to_e2_geodesic_mm": 5.35629127629826,
+      "median_edge_speed_mm_min": 6.4864566731385,
+      "deep_edge_speed_mm_min": 5.899490035582915,
+      "shallow_edge_speed_mm_min": 6.747198442037881,
+      "min_perfusion": 0.6,
+      "min_oxygen": 1.0,
+      "crossed_fraction": 0.4708333333333333,
+      "vascular_feedback": false,
+      "anisotropy": true
+    },
+    {
+      "case_label": "surface_scalar_vascular",
+      "case_title": "Family 3: geometry + vascular",
+      "arrival_speed_mm_min": 4.252460162030649,
+      "e1_arrival_s": 14.156603371312789,
+      "e2_arrival_s": 89.73108598432106,
+      "cross_fold_delay_s": 75.57448261300827,
+      "e1_to_e2_geodesic_mm": 5.35629127629826,
+      "median_edge_speed_mm_min": 5.81524931060184,
+      "deep_edge_speed_mm_min": 5.2978809982048025,
+      "shallow_edge_speed_mm_min": 6.253074869627223,
+      "min_perfusion": 0.5996441848038174,
+      "min_oxygen": 0.2,
+      "crossed_fraction": 0.4361111111111111,
+      "vascular_feedback": true,
+      "anisotropy": false
+    },
+    {
+      "case_label": "surface_tensor_vascular",
+      "case_title": "Family 4: geometry + anisotropy + vascular",
+      "arrival_speed_mm_min": 4.259397666049429,
+      "e1_arrival_s": 13.552930732485368,
+      "e2_arrival_s": 89.00432122826213,
+      "cross_fold_delay_s": 75.45139049577676,
+      "e1_to_e2_geodesic_mm": 5.35629127629826,
+      "median_edge_speed_mm_min": 6.2226883616779745,
+      "deep_edge_speed_mm_min": 5.7041309982048025,
+      "shallow_edge_speed_mm_min": 6.8449571978457575,
+      "min_perfusion": 0.5996480192362726,
+      "min_oxygen": 0.2,
+      "crossed_fraction": 0.45555555555555555,
+      "vascular_feedback": true,
+      "anisotropy": true
+    }
+  ]
+}

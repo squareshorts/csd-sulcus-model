@@ -1,0 +1,26 @@
+[
+  {
+    "k_release_rate": 0.16,
+    "k_clearance_rate": 0.04,
+    "k_threshold": 9.0,
+    "k_arrival_threshold": 10.0,
+    "control_speed_mm_min": 3.0,
+    "scalar_speed_mm_min": 2.6077261306532673,
+    "tensor_speed_mm_min": 2.6841594827586213,
+    "scalar_delta_mm_min": -0.3922738693467327,
+    "tensor_minus_scalar_mm_min": 0.07643335210535396,
+    "control_sulcus_local_speed_mm_min": 2.9576082948858926,
+    "scalar_sulcus_local_speed_mm_min": 2.543091356335186,
+    "tensor_sulcus_local_speed_mm_min": 2.587228017192512,
+    "scalar_sulcus_delay_s": 8.879862700228813,
+    "scalar_downstream_delay_s": 16.18411899313503,
+    "tensor_sulcus_delay_s": 7.418100686498853,
+    "scalar_slows_electrode": true,
+    "tensor_faster_electrode": true,
+    "scalar_slows_sulcus": true,
+    "tensor_faster_sulcus": true,
+    "downstream_delay_positive": true,
+    "acceptance_score": 5,
+    "accepted": true
+  }
+]

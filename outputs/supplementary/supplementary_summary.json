@@ -1,0 +1,116 @@
+{
+  "statistical_tests": {
+    "flat": {
+      "profile": "flat",
+      "n_pairs": 9,
+      "mean_difference_mm_min": 0.0619,
+      "sd_difference_mm_min": 0.0372,
+      "min_difference_mm_min": 0.0189,
+      "max_difference_mm_min": 0.1177,
+      "wilcoxon_statistic": 45.0,
+      "wilcoxon_p_value": 0.001953125,
+      "paired_t_statistic": 4.9939,
+      "paired_t_p_value": 0.0005304085956552342,
+      "all_positive": true
+    },
+    "gaussian": {
+      "profile": "gaussian",
+      "n_pairs": 9,
+      "mean_difference_mm_min": 0.057,
+      "sd_difference_mm_min": 0.0353,
+      "min_difference_mm_min": 0.0172,
+      "max_difference_mm_min": 0.1136,
+      "wilcoxon_statistic": 45.0,
+      "wilcoxon_p_value": 0.001953125,
+      "paired_t_statistic": 4.8439,
+      "paired_t_p_value": 0.0006409108197316964,
+      "all_positive": true
+    }
+  },
+  "eta_sensitivity": [
+    {
+      "eta": 0.0,
+      "tensor_speed_mm_min": 2.7531,
+      "scalar_speed_mm_min": 2.5822,
+      "anisotropy_gain_mm_min": 0.1709,
+      "tensor_sulcus_local_mm_min": 2.6466,
+      "scalar_sulcus_local_mm_min": 2.5221
+    },
+    {
+      "eta": 0.2,
+      "tensor_speed_mm_min": 2.7214,
+      "scalar_speed_mm_min": 2.5822,
+      "anisotropy_gain_mm_min": 0.1392,
+      "tensor_sulcus_local_mm_min": 2.6213,
+      "scalar_sulcus_local_mm_min": 2.5221
+    },
+    {
+      "eta": 0.4,
+      "tensor_speed_mm_min": 2.6889,
+      "scalar_speed_mm_min": 2.5822,
+      "anisotropy_gain_mm_min": 0.1067,
+      "tensor_sulcus_local_mm_min": 2.5928,
+      "scalar_sulcus_local_mm_min": 2.5221
+    },
+    {
+      "eta": 0.6,
+      "tensor_speed_mm_min": 2.6537,
+      "scalar_speed_mm_min": 2.5822,
+      "anisotropy_gain_mm_min": 0.0715,
+      "tensor_sulcus_local_mm_min": 2.5604,
+      "scalar_sulcus_local_mm_min": 2.5221
+    },
+    {
+      "eta": 0.8,
+      "tensor_speed_mm_min": 2.6179,
+      "scalar_speed_mm_min": 2.5822,
+      "anisotropy_gain_mm_min": 0.0357,
+      "tensor_sulcus_local_mm_min": 2.5314,
+      "scalar_sulcus_local_mm_min": 2.5221
+    },
+    {
+      "eta": 1.0,
+      "tensor_speed_mm_min": 2.5822,
+      "scalar_speed_mm_min": 2.5822,
+      "anisotropy_gain_mm_min": 0.0,
+      "tensor_sulcus_local_mm_min": 2.5221,
+      "scalar_sulcus_local_mm_min": 2.5221
+    }
+  ],
+  "grid_convergence": [
+    {
+      "dx_mm": 0.2,
+      "dt_s": 0.004,
+      "nx": 100,
+      "ny": 71,
+      "CFL": 0.001,
+      "scalar_speed_mm_min": 2.4912,
+      "tensor_speed_mm_min": 2.6099,
+      "anisotropy_gain_mm_min": 0.1187,
+      "elapsed_s": 40.2
+    },
+    {
+      "dx_mm": 0.1,
+      "dt_s": 0.002,
+      "nx": 200,
+      "ny": 140,
+      "CFL": 0.002,
+      "scalar_speed_mm_min": 2.5822,
+      "tensor_speed_mm_min": 2.6889,
+      "anisotropy_gain_mm_min": 0.1067,
+      "elapsed_s": 344.5
+    },
+    {
+      "dx_mm": 0.05,
+      "dt_s": 0.001,
+      "nx": 399,
+      "ny": 279,
+      "CFL": 0.004,
+      "scalar_speed_mm_min": 2.6005,
+      "tensor_speed_mm_min": 2.7041,
+      "anisotropy_gain_mm_min": 0.1036,
+      "elapsed_s": 4989.1
+    }
+  ],
+  "total_elapsed_s": 8441.7
+}

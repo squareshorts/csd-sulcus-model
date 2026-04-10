@@ -1,0 +1,10 @@
+band_key,band_label,citation,lower_mm_min,upper_mm_min,metric_key,metric_label,n_total,n_within,all_within
+experimental_cortex,Experimental cortex (broad),Lauritzen et al. 2011,2.0,5.0,control_speed_mm_min,Control,63,63,True
+experimental_cortex,Experimental cortex (broad),Lauritzen et al. 2011,2.0,5.0,scalar_speed_mm_min,Scalar,63,63,True
+experimental_cortex,Experimental cortex (broad),Lauritzen et al. 2011,2.0,5.0,tensor_speed_mm_min,Tensor,63,63,True
+human_malignant_stroke,Human malignant stroke (broad),Woitzik et al. 2013,1.7,9.2,control_speed_mm_min,Control,63,63,True
+human_malignant_stroke,Human malignant stroke (broad),Woitzik et al. 2013,1.7,9.2,scalar_speed_mm_min,Scalar,63,63,True
+human_malignant_stroke,Human malignant stroke (broad),Woitzik et al. 2013,1.7,9.2,tensor_speed_mm_min,Tensor,63,63,True
+controlled_recordings_narrow,Controlled recordings (narrow),Ayata & Lauritzen 2015; Dreier et al. 2017,2.5,4.5,control_speed_mm_min,Control,63,63,True
+controlled_recordings_narrow,Controlled recordings (narrow),Ayata & Lauritzen 2015; Dreier et al. 2017,2.5,4.5,scalar_speed_mm_min,Scalar,63,63,True
+controlled_recordings_narrow,Controlled recordings (narrow),Ayata & Lauritzen 2015; Dreier et al. 2017,2.5,4.5,tensor_speed_mm_min,Tensor,63,63,True

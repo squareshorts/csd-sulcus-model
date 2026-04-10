@@ -1,0 +1,28 @@
+{
+  "flat": {
+    "profile": "flat",
+    "n_pairs": 9,
+    "mean_difference_mm_min": 0.0619,
+    "sd_difference_mm_min": 0.0372,
+    "min_difference_mm_min": 0.0189,
+    "max_difference_mm_min": 0.1177,
+    "wilcoxon_statistic": 45.0,
+    "wilcoxon_p_value": 0.001953125,
+    "paired_t_statistic": 4.9939,
+    "paired_t_p_value": 0.0005304085956552342,
+    "all_positive": true
+  },
+  "gaussian": {
+    "profile": "gaussian",
+    "n_pairs": 9,
+    "mean_difference_mm_min": 0.057,
+    "sd_difference_mm_min": 0.0353,
+    "min_difference_mm_min": 0.0172,
+    "max_difference_mm_min": 0.1136,
+    "wilcoxon_statistic": 45.0,
+    "wilcoxon_p_value": 0.001953125,
+    "paired_t_statistic": 4.8439,
+    "paired_t_p_value": 0.0006409108197316964,
+    "all_positive": true
+  }
+}

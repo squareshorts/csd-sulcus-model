@@ -145,6 +145,14 @@ def build_coupling_weight(p: Params, dipole_on: bool) -> tuple[np.ndarray, np.nd
     return weight, sulc_mask, phi
 
 
+def build_electromagnetic_cancellation_weight(
+    p: Params,
+    dipole_on: bool,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Mesoscale attenuation weight for opposed-bank dipole cancellation inside the sulcus."""
+    return build_coupling_weight(p, dipole_on)
+
+
 def resolve_tensor_tangent_attenuation_ratio(p: Params) -> float:
     mode = p.tensor_constraint_mode.lower()
     if mode in {"manual", "none"}:
@@ -172,7 +180,7 @@ def build_diffusion_fields(
     p: Params,
     dipole_on: bool,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    weight, sulc_mask, phi = build_coupling_weight(p, dipole_on)
+    weight, sulc_mask, phi = build_electromagnetic_cancellation_weight(p, dipole_on)
 
     g_normal = p.g_gyrus - (p.g_gyrus - p.g_sulcus_min) * weight
     diffusion_mode = p.diffusion_mode.lower()

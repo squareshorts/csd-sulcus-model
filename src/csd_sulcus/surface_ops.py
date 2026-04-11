@@ -21,6 +21,7 @@ class SurfaceOperators:
     edge_j: np.ndarray
     edge_lengths: np.ndarray
     base_edge_weights: np.ndarray
+    edge_alignment_sq: np.ndarray
 
 
 def _normalize_vectors(vectors: np.ndarray, eps: float = 1e-12) -> np.ndarray:
@@ -205,5 +206,6 @@ def build_surface_operators(
         edge_j=edge_j,
         edge_lengths=edge_lengths,
         base_edge_weights=base_edge_weights,
+        edge_alignment_sq=align_sq,
     )
 

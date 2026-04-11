@@ -6,6 +6,7 @@ from typing import Sequence
 import numpy as np
 from scipy import sparse
 from scipy.sparse import csgraph
+from scipy.spatial import cKDTree
 
 from .surface_io import SurfaceMesh
 from .surface_ops import SurfaceOperators, build_surface_operators, estimate_explicit_dt
@@ -23,6 +24,22 @@ class SurfaceParams:
     anisotropy_ratio: float = 1.15
     enable_anisotropy: bool = True
     enable_vascular_feedback: bool = True
+    enable_electromagnetic_dipole: bool = False
+    electrodiffusion_mobility_gain: float = 0.14
+    dipole_source_gain: float = 0.22
+    dipole_softening_mm: float = 0.75
+    dipole_interaction_radius_mm: float = 6.0
+
+    ecs_volume_fraction_base: float = 0.20
+    ecs_volume_fraction_min: float = 0.08
+    ecs_depth_volume_fraction_loss: float = 0.28
+    ecs_thickness_volume_fraction_loss: float = 0.10
+    ecs_tortuosity_base: float = 1.60
+    ecs_depth_tortuosity_gain: float = 0.35
+    ecs_thickness_tortuosity_gain: float = 0.10
+    ecs_swelling_tau: float = 15.0
+    ecs_swelling_volume_fraction_gain: float = 0.30
+    ecs_swelling_tortuosity_gain: float = 0.25
 
     k_rest: float = 3.5
     k_peak: float = 60.0
@@ -74,10 +91,14 @@ class SurfaceSimulationOutput:
     perfusion: np.ndarray
     constriction: np.ndarray
     oxygen: np.ndarray
+    swelling: np.ndarray
     baseline_reserve: np.ndarray
     constriction_susceptibility: np.ndarray
     d_parallel: np.ndarray
     d_perp: np.ndarray
+    ecs_volume_fraction: np.ndarray
+    ecs_tortuosity: np.ndarray
+    electric_potential: np.ndarray
     dt_used: float
     snapshot_times: np.ndarray
     snapshot_potassium: np.ndarray
@@ -131,15 +152,49 @@ def _vascular_threshold_field(
 
 
 def _auto_dt(operators: SurfaceOperators, params: SurfaceParams) -> float:
-    return estimate_explicit_dt(operators.lumped_mass, operators.stiffness, safety=params.auto_dt_safety)
+    dt = estimate_explicit_dt(operators.lumped_mass, operators.stiffness, safety=params.auto_dt_safety)
+    if params.enable_electromagnetic_dipole and params.electrodiffusion_mobility_gain > 0.0:
+        dt /= 1.0 + float(np.clip(params.electrodiffusion_mobility_gain, 0.0, 1.0))
+    return dt
 
 
-def build_surface_fields(mesh: SurfaceMesh, params: SurfaceParams) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def build_surface_fields(
+    mesh: SurfaceMesh,
+    params: SurfaceParams,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     sulcal_depth = np.clip(np.asarray(mesh.sulcal_depth, dtype=float), 0.0, 1.0)
     inverse_thickness = _normalize_field(1.0 / np.maximum(np.asarray(mesh.thickness, dtype=float), 1e-3))
 
+    ecs_volume_fraction = params.ecs_volume_fraction_base * (
+        1.0
+        - params.ecs_depth_volume_fraction_loss * sulcal_depth
+        - params.ecs_thickness_volume_fraction_loss * inverse_thickness
+    )
+    ecs_volume_fraction = np.clip(
+        ecs_volume_fraction,
+        params.ecs_volume_fraction_min,
+        params.ecs_volume_fraction_base,
+    )
+
+    ecs_tortuosity = params.ecs_tortuosity_base * (
+        1.0
+        + params.ecs_depth_tortuosity_gain * sulcal_depth
+        + params.ecs_thickness_tortuosity_gain * inverse_thickness
+    )
+    ecs_tortuosity = np.clip(
+        ecs_tortuosity,
+        1.0,
+        params.ecs_tortuosity_base * 2.5,
+    )
+
     thickness_factor = 1.0 + params.thickness_transport_gain * inverse_thickness
-    d_perp = params.D0 * np.exp(-params.depth_decay * sulcal_depth) * thickness_factor
+    diffusion_scale = (
+        np.exp(-params.depth_decay * sulcal_depth)
+        * thickness_factor
+        * (ecs_volume_fraction / max(params.ecs_volume_fraction_base, 1e-6))
+        * (params.ecs_tortuosity_base / np.maximum(ecs_tortuosity, 1.0)) ** 2
+    )
+    d_perp = params.D0 * diffusion_scale
     anisotropy_ratio = params.anisotropy_ratio if params.enable_anisotropy else 1.0
     d_parallel = anisotropy_ratio * d_perp
 
@@ -149,7 +204,155 @@ def build_surface_fields(mesh: SurfaceMesh, params: SurfaceParams) -> tuple[np.n
     constriction_susceptibility = params.a_con0 * (
         1.0 + params.chi_depth * sulcal_depth + params.chi_vascular_risk * np.asarray(mesh.vascular_risk, dtype=float)
     )
-    return d_parallel, d_perp, baseline_reserve, constriction_susceptibility
+    return (
+        d_parallel,
+        d_perp,
+        baseline_reserve,
+        constriction_susceptibility,
+        ecs_volume_fraction,
+        ecs_tortuosity,
+    )
+
+
+def _dynamic_extracellular_fields(
+    d_parallel_base: np.ndarray,
+    d_perp_base: np.ndarray,
+    ecs_volume_fraction_base: np.ndarray,
+    ecs_tortuosity_base: np.ndarray,
+    swelling: np.ndarray,
+    params: SurfaceParams,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ecs_volume_fraction = ecs_volume_fraction_base * (
+        1.0 - params.ecs_swelling_volume_fraction_gain * np.clip(swelling, 0.0, 1.5)
+    )
+    ecs_volume_fraction = np.clip(
+        ecs_volume_fraction,
+        params.ecs_volume_fraction_min,
+        params.ecs_volume_fraction_base,
+    )
+
+    ecs_tortuosity = ecs_tortuosity_base * (
+        1.0 + params.ecs_swelling_tortuosity_gain * np.clip(swelling, 0.0, 1.5)
+    )
+    ecs_tortuosity = np.clip(
+        ecs_tortuosity,
+        1.0,
+        params.ecs_tortuosity_base * 3.0,
+    )
+
+    diffusion_scale = (
+        ecs_volume_fraction / np.maximum(ecs_volume_fraction_base, 1e-6)
+    ) * (ecs_tortuosity_base / np.maximum(ecs_tortuosity, 1.0)) ** 2
+    d_parallel = d_parallel_base * diffusion_scale
+    d_perp = d_perp_base * diffusion_scale
+    return d_parallel, d_perp, ecs_volume_fraction, ecs_tortuosity
+
+
+def _build_dipole_interaction_matrix(
+    mesh: SurfaceMesh,
+    vertex_normals: np.ndarray,
+    params: SurfaceParams,
+) -> sparse.csr_matrix:
+    n_vertices = mesh.n_vertices
+    if (
+        not params.enable_electromagnetic_dipole
+        or params.dipole_source_gain <= 0.0
+        or params.electrodiffusion_mobility_gain <= 0.0
+    ):
+        return sparse.csr_matrix((n_vertices, n_vertices), dtype=float)
+
+    radius = max(float(params.dipole_interaction_radius_mm), float(params.dipole_softening_mm))
+    if radius <= 0.0:
+        return sparse.csr_matrix((n_vertices, n_vertices), dtype=float)
+
+    softening_sq = max(float(params.dipole_softening_mm), 1e-3) ** 2
+    tree = cKDTree(np.asarray(mesh.vertices, dtype=float))
+    neighbours = tree.query_ball_point(mesh.vertices, r=radius)
+
+    rows: list[int] = []
+    cols: list[int] = []
+    data: list[float] = []
+    for i, js in enumerate(neighbours):
+        if not js:
+            continue
+        edge_js = np.asarray(js, dtype=int)
+        edge_js = edge_js[edge_js != i]
+        if edge_js.size == 0:
+            continue
+        displacement = mesh.vertices[i][None, :] - mesh.vertices[edge_js]
+        dist_sq = np.sum(displacement * displacement, axis=1) + softening_sq
+        kernel = np.sum(displacement * vertex_normals[edge_js], axis=1) / np.power(dist_sq, 1.5)
+        rows.extend([i] * int(edge_js.size))
+        cols.extend(edge_js.tolist())
+        data.extend(kernel.tolist())
+
+    if not data:
+        return sparse.csr_matrix((n_vertices, n_vertices), dtype=float)
+    interaction = sparse.coo_matrix((data, (rows, cols)), shape=(n_vertices, n_vertices))
+    return interaction.tocsr()
+
+
+def _dipole_potential(
+    activation: np.ndarray,
+    operators: SurfaceOperators,
+    dipole_interaction: sparse.csr_matrix,
+    params: SurfaceParams,
+) -> np.ndarray:
+    if dipole_interaction.nnz == 0:
+        return np.zeros_like(activation, dtype=float)
+
+    dipole_source = float(params.dipole_source_gain) * activation * operators.lumped_mass
+    potential = np.asarray(dipole_interaction @ dipole_source, dtype=float).reshape(-1)
+    potential -= float(np.average(potential, weights=operators.lumped_mass))
+    return potential
+
+
+def _edge_conductivity(
+    operators: SurfaceOperators,
+    d_parallel: np.ndarray,
+    d_perp: np.ndarray,
+) -> np.ndarray:
+    d_parallel_edge = 0.5 * (d_parallel[operators.edge_i] + d_parallel[operators.edge_j])
+    d_perp_edge = 0.5 * (d_perp[operators.edge_i] + d_perp[operators.edge_j])
+    return d_perp_edge + (d_parallel_edge - d_perp_edge) * operators.edge_alignment_sq
+
+
+def _edge_flux_divergence(operators: SurfaceOperators, flux_ij: np.ndarray) -> np.ndarray:
+    delta = np.zeros_like(operators.lumped_mass, dtype=float)
+    np.add.at(delta, operators.edge_i, -flux_ij)
+    np.add.at(delta, operators.edge_j, flux_ij)
+    return delta * operators.inv_lumped_mass
+
+
+def _transport_rhs(
+    concentration: np.ndarray,
+    operators: SurfaceOperators,
+    d_parallel: np.ndarray,
+    d_perp: np.ndarray,
+    electric_potential: np.ndarray,
+    params: SurfaceParams,
+) -> np.ndarray:
+    edge_conductivity = _edge_conductivity(operators, d_parallel, d_perp)
+    diffusive_flux = (
+        operators.base_edge_weights
+        * edge_conductivity
+        * (concentration[operators.edge_i] - concentration[operators.edge_j])
+    )
+    rhs = _edge_flux_divergence(operators, diffusive_flux)
+
+    if not params.enable_electromagnetic_dipole or params.electrodiffusion_mobility_gain <= 0.0:
+        return rhs
+
+    concentration_edge = 0.5 * (concentration[operators.edge_i] + concentration[operators.edge_j])
+    potential_drop = electric_potential[operators.edge_i] - electric_potential[operators.edge_j]
+    drift_flux = (
+        operators.base_edge_weights
+        * float(params.electrodiffusion_mobility_gain)
+        * edge_conductivity
+        * concentration_edge
+        * potential_drop
+    )
+    return rhs + _edge_flux_divergence(operators, drift_flux)
 
 
 def nearest_vertex(mesh: SurfaceMesh, point: Sequence[float]) -> int:
@@ -248,8 +451,16 @@ def run_surface_simulation(
     stimulus_vertex: int,
     snapshot_times: Sequence[float] = (),
 ) -> SurfaceSimulationOutput:
-    d_parallel, d_perp, baseline_reserve, constriction_susceptibility = build_surface_fields(mesh, params)
-    operators = build_surface_operators(mesh, d_parallel=d_parallel, d_perp=d_perp)
+    (
+        d_parallel_base,
+        d_perp_base,
+        baseline_reserve,
+        constriction_susceptibility,
+        ecs_volume_fraction_base,
+        ecs_tortuosity_base,
+    ) = build_surface_fields(mesh, params)
+    operators = build_surface_operators(mesh, d_parallel=d_parallel_base, d_perp=d_perp_base)
+    dipole_interaction = _build_dipole_interaction_matrix(mesh, operators.vertex_normals, params)
     dt_used = float(params.dt) if params.dt is not None else _auto_dt(operators, params)
 
     steps = int(round(params.final_t_end / dt_used))
@@ -264,6 +475,13 @@ def run_surface_simulation(
     perfusion = baseline_reserve.copy()
     constriction = np.zeros(n_vertices, dtype=float)
     oxygen = np.ones(n_vertices, dtype=float)
+    swelling = np.zeros(n_vertices, dtype=float)
+
+    d_parallel = d_parallel_base.copy()
+    d_perp = d_perp_base.copy()
+    ecs_volume_fraction = ecs_volume_fraction_base.copy()
+    ecs_tortuosity = ecs_tortuosity_base.copy()
+    electric_potential = np.zeros(n_vertices, dtype=float)
 
     stimulus_mask = euclidean_roi(mesh, int(stimulus_vertex), params.stim_radius_mm)
     potassium[stimulus_mask] = np.maximum(potassium[stimulus_mask], params.stim_k)
@@ -300,14 +518,25 @@ def run_surface_simulation(
             clearance_factor = buffer_available
 
         activation = _activation(potassium, threshold, params.k_threshold_slope)
+        d_parallel, d_perp, ecs_volume_fraction, ecs_tortuosity = _dynamic_extracellular_fields(
+            d_parallel_base,
+            d_perp_base,
+            ecs_volume_fraction_base,
+            ecs_tortuosity_base,
+            swelling,
+            params,
+        )
+        electric_potential = _dipole_potential(activation, operators, dipole_interaction, params)
+
         release = params.k_release_rate * activation * np.maximum(params.k_peak - potassium, 0.0)
         clearance = params.k_clearance_rate * clearance_factor * np.maximum(potassium - params.k_rest, 0.0)
-        diffusion = -(operators.stiffness @ potassium) * operators.inv_lumped_mass
+        transport = _transport_rhs(potassium, operators, d_parallel, d_perp, electric_potential, params)
 
-        potassium = potassium + dt_used * (release - clearance + diffusion)
+        potassium = potassium + dt_used * (release - clearance + transport)
         buffer_available = buffer_available + dt_used * (
             (1.0 - buffer_available) / params.k_buffer_tau_s - params.k_buffer_depletion_rate * activation * buffer_available
         )
+        swelling = swelling + dt_used * ((activation - swelling) / max(params.ecs_swelling_tau, 1e-6))
 
         if params.enable_vascular_feedback:
             constriction_target = constriction_susceptibility * activation
@@ -323,6 +552,7 @@ def run_surface_simulation(
 
         np.clip(potassium, params.k_rest, params.k_peak, out=potassium)
         np.clip(buffer_available, 0.05, 1.25, out=buffer_available)
+        np.clip(swelling, 0.0, 1.5, out=swelling)
         np.clip(perfusion, params.min_perfusion, params.max_perfusion, out=perfusion)
         np.clip(oxygen, params.min_oxygen, params.max_oxygen, out=oxygen)
         np.clip(constriction, 0.0, 1.5, out=constriction)
@@ -337,14 +567,17 @@ def run_surface_simulation(
         perfusion=perfusion,
         constriction=constriction,
         oxygen=oxygen,
+        swelling=swelling,
         baseline_reserve=baseline_reserve,
         constriction_susceptibility=constriction_susceptibility,
         d_parallel=d_parallel,
         d_perp=d_perp,
+        ecs_volume_fraction=ecs_volume_fraction,
+        ecs_tortuosity=ecs_tortuosity,
+        electric_potential=electric_potential,
         dt_used=dt_used,
         snapshot_times=actual_snapshot_times,
         snapshot_potassium=snapshot_potassium,
         snapshot_perfusion=snapshot_perfusion,
         snapshot_oxygen=snapshot_oxygen,
     )
-

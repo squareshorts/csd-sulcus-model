@@ -10,20 +10,24 @@ from run_surface_representative import CASE_DEFINITIONS, CASE_ORDER, choose_auto
 
 def test_surface_case_definitions_cover_four_families() -> None:
     assert CASE_ORDER == [
-        'surface_scalar_transport',
-        'surface_tensor_transport',
-        'surface_scalar_vascular',
-        'surface_tensor_vascular',
+        'surface_diffusion_only',
+        'surface_anisotropic_diffusion',
+        'surface_electrodiffusion',
+        'surface_full_coupled',
     ]
     assert set(CASE_DEFINITIONS) == set(CASE_ORDER)
-    assert not CASE_DEFINITIONS['surface_scalar_transport'].enable_anisotropy
-    assert not CASE_DEFINITIONS['surface_scalar_transport'].enable_vascular_feedback
-    assert CASE_DEFINITIONS['surface_tensor_transport'].enable_anisotropy
-    assert not CASE_DEFINITIONS['surface_tensor_transport'].enable_vascular_feedback
-    assert not CASE_DEFINITIONS['surface_scalar_vascular'].enable_anisotropy
-    assert CASE_DEFINITIONS['surface_scalar_vascular'].enable_vascular_feedback
-    assert CASE_DEFINITIONS['surface_tensor_vascular'].enable_anisotropy
-    assert CASE_DEFINITIONS['surface_tensor_vascular'].enable_vascular_feedback
+    assert not CASE_DEFINITIONS['surface_diffusion_only'].enable_anisotropy
+    assert not CASE_DEFINITIONS['surface_diffusion_only'].enable_vascular_feedback
+    assert not CASE_DEFINITIONS['surface_diffusion_only'].enable_electromagnetic_dipole
+    assert CASE_DEFINITIONS['surface_anisotropic_diffusion'].enable_anisotropy
+    assert not CASE_DEFINITIONS['surface_anisotropic_diffusion'].enable_vascular_feedback
+    assert not CASE_DEFINITIONS['surface_anisotropic_diffusion'].enable_electromagnetic_dipole
+    assert CASE_DEFINITIONS['surface_electrodiffusion'].enable_anisotropy
+    assert not CASE_DEFINITIONS['surface_electrodiffusion'].enable_vascular_feedback
+    assert CASE_DEFINITIONS['surface_electrodiffusion'].enable_electromagnetic_dipole
+    assert CASE_DEFINITIONS['surface_full_coupled'].enable_anisotropy
+    assert CASE_DEFINITIONS['surface_full_coupled'].enable_vascular_feedback
+    assert CASE_DEFINITIONS['surface_full_coupled'].enable_electromagnetic_dipole
 
 
 def test_choose_auto_vertices_places_e2_across_the_fold() -> None:

@@ -1,6 +1,6 @@
 # CSD Sulcus Model
 
-This repository contains a reproducible cortical spreading depolarization (CSD) modeling workflow for studying sulcal slowing in folded cortex. The project supports isotropic scalar coupling reductions, orientation-aware tensor transport, a physiology-constrained tensor extension tied to conservative cortical anisotropy priors, and a reduced biophysical potassium-buffer SD model for checking whether the scalar-versus-tensor ordering survives beyond Barkley kinetics.
+This repository contains a reproducible cortical spreading depolarization (CSD) modeling workflow for studying sulcal slowing in folded cortex. The project supports isotropic scalar coupling reductions, orientation-aware tensor transport, and a surface-based reduced biophysical SD model in which extracellular potassium diffusion is the central transport process and a quasi-static dipole field contributes an electrodiffusive correction. The repository also includes a physiology-constrained tensor extension tied to conservative cortical anisotropy priors for checking whether the scalar-versus-tensor ordering survives beyond Barkley kinetics.
 
 ## Repository Contents
 
@@ -8,7 +8,7 @@ This repository contains a reproducible cortical spreading depolarization (CSD) 
 - `scripts/run_biophysical_grid.py`: manuscript-scale biophysical K-buffer sensitivity study
 - `scripts/run_biophysical_validation.py`: microstructure-constrained biophysical validation sweep
 - `scripts/run_physiology_anchor.py`: upgraded physiological speed/delay anchoring logic
-- `scripts/run_surface_representative.py`: cortical-surface representative scaffold with anisotropy and low-order vascular feedback
+- `scripts/run_surface_representative.py`: cortical-surface representative scaffold comparing diffusion-only, anisotropic diffusion, dipole electrodiffusion, and vascularly coupled electrodiffusion families
 - `scripts/prepare_surface_bundle.py`: prepares a ready-to-run cortical-surface NPZ bundle from FreeSurfer or HCP-style files
 - `src/csd_sulcus/`: reusable model, analysis, and plotting code
 - `tests/test_study.py`: smoke tests for determinism, monotonic slowing, tensor positivity, and physiology-extension ordering
@@ -117,7 +117,7 @@ The surface solver needs three per-vertex anatomical inputs and one mesh topolog
 - A cortical thickness map. FreeSurfer `thickness` or HCP-style `*.thickness.shape.gii` works.
 - An optional vascular-risk field. If you do not provide one, the script derives it from normalized sulcal depth and inverse thickness.
 
-The prep script also derives a tangential preferred-axis field from the sulcal-depth gradient so the anisotropic transport term has an anatomically grounded surface direction field.
+The prep script also derives a tangential preferred-axis field from the sulcal-depth gradient so the anisotropic transport term has an anatomically grounded surface direction field. In the surface solver, sulcal depth and thickness also parameterize extracellular-space volume fraction and tortuosity, so the diffusion operator reflects reduced ECS transport in deeper tissue before the quasi-static dipole field is applied as an electrodiffusive correction.
 
 ## Key Outputs
 

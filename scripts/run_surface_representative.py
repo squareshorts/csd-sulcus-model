@@ -32,31 +32,51 @@ from csd_sulcus.surface_model import (
 
 
 CASE_DEFINITIONS = {
-    'surface_scalar_transport': SurfaceParams(enable_anisotropy=False, enable_vascular_feedback=False),
-    'surface_tensor_transport': SurfaceParams(enable_anisotropy=True, enable_vascular_feedback=False),
-    'surface_scalar_vascular': SurfaceParams(enable_anisotropy=False, enable_vascular_feedback=True),
-    'surface_tensor_vascular': SurfaceParams(enable_anisotropy=True, enable_vascular_feedback=True),
+    'surface_diffusion_only': SurfaceParams(
+        enable_anisotropy=False,
+        enable_vascular_feedback=False,
+        enable_electromagnetic_dipole=False,
+    ),
+    'surface_anisotropic_diffusion': SurfaceParams(
+        enable_anisotropy=True,
+        enable_vascular_feedback=False,
+        enable_electromagnetic_dipole=False,
+    ),
+    'surface_electrodiffusion': SurfaceParams(
+        enable_anisotropy=True,
+        enable_vascular_feedback=False,
+        enable_electromagnetic_dipole=True,
+        electrodiffusion_mobility_gain=0.5,
+        dipole_source_gain=0.7,
+    ),
+    'surface_full_coupled': SurfaceParams(
+        enable_anisotropy=True,
+        enable_vascular_feedback=True,
+        enable_electromagnetic_dipole=True,
+        electrodiffusion_mobility_gain=0.5,
+        dipole_source_gain=0.7,
+    ),
 }
 
 CASE_ORDER = [
-    'surface_scalar_transport',
-    'surface_tensor_transport',
-    'surface_scalar_vascular',
-    'surface_tensor_vascular',
+    'surface_diffusion_only',
+    'surface_anisotropic_diffusion',
+    'surface_electrodiffusion',
+    'surface_full_coupled',
 ]
 
 CASE_TITLES = {
-    'surface_scalar_transport': 'Family 1: geometry only',
-    'surface_tensor_transport': 'Family 2: geometry + anisotropy',
-    'surface_scalar_vascular': 'Family 3: geometry + vascular',
-    'surface_tensor_vascular': 'Family 4: geometry + anisotropy + vascular',
+    'surface_diffusion_only': 'Family 1: extracellular diffusion only',
+    'surface_anisotropic_diffusion': 'Family 2: diffusion + anisotropy',
+    'surface_electrodiffusion': 'Family 3: diffusion + dipole electrodiffusion',
+    'surface_full_coupled': 'Family 4: electrodiffusion + vascular feedback',
 }
 
 CASE_SHORT_LABELS = {
-    'surface_scalar_transport': 'Geom only',
-    'surface_tensor_transport': 'Geom + anis.',
-    'surface_scalar_vascular': 'Geom + vasc.',
-    'surface_tensor_vascular': 'Geom + anis. + vasc.',
+    'surface_diffusion_only': 'Diffusion',
+    'surface_anisotropic_diffusion': 'Diff. + anis.',
+    'surface_electrodiffusion': 'Electrodiff.',
+    'surface_full_coupled': 'Electrodiff. + vasc.',
 }
 
 
@@ -251,10 +271,10 @@ def render_summary_panel(ax, rows_by_name: dict[str, dict[str, float | int | str
             f'{format_metric(float(row["arrival_speed_mm_min"]), 2):>12}'
         )
 
-    transport_speed = float(rows_by_name['surface_scalar_transport']['arrival_speed_mm_min'])
-    tensor_speed = float(rows_by_name['surface_tensor_transport']['arrival_speed_mm_min'])
-    scalar_vasc_speed = float(rows_by_name['surface_scalar_vascular']['arrival_speed_mm_min'])
-    tensor_vasc_speed = float(rows_by_name['surface_tensor_vascular']['arrival_speed_mm_min'])
+    diffusion_speed = float(rows_by_name['surface_diffusion_only']['arrival_speed_mm_min'])
+    anisotropic_speed = float(rows_by_name['surface_anisotropic_diffusion']['arrival_speed_mm_min'])
+    electrodiffusive_speed = float(rows_by_name['surface_electrodiffusion']['arrival_speed_mm_min'])
+    full_speed = float(rows_by_name['surface_full_coupled']['arrival_speed_mm_min'])
     fastest_name = max(CASE_ORDER, key=lambda name: float(rows_by_name[name]['arrival_speed_mm_min']))
     spread = max(float(rows_by_name[name]['arrival_speed_mm_min']) for name in CASE_ORDER) - min(
         float(rows_by_name[name]['arrival_speed_mm_min']) for name in CASE_ORDER
@@ -263,16 +283,16 @@ def render_summary_panel(ax, rows_by_name: dict[str, dict[str, float | int | str
         [
             '',
             'Interpretation',
-            f'1. Geometry-only transport is rank {ranks["surface_scalar_transport"]}/4 for cross-fold speed.',
-            f'2. Anisotropy vs geometry only: {describe_speed_delta(tensor_speed - transport_speed)}.',
-            f'3. Vascular effect on scalar branch: {describe_speed_delta(scalar_vasc_speed - transport_speed)}.',
-            f'4. Vascular effect on tensor branch: {describe_speed_delta(tensor_vasc_speed - tensor_speed)}.',
+            f'1. Diffusion-only transport is rank {ranks["surface_diffusion_only"]}/4 for cross-fold speed.',
+            f'2. Anisotropy vs diffusion only: {describe_speed_delta(anisotropic_speed - diffusion_speed)}.',
+            f'3. Dipole electrodiffusion vs anisotropic diffusion: {describe_speed_delta(electrodiffusive_speed - anisotropic_speed)}.',
+            f'4. Vascular effect on the electrodiffusive branch: {describe_speed_delta(full_speed - electrodiffusive_speed)}.',
             f'5. Fastest family here: {CASE_SHORT_LABELS[fastest_name]}.',
             '',
             (
-                'Coupled families remain in the same regime as the transport-only families.'
+                'The coupled families remain in the same regime as the extracellular-diffusion baseline.'
                 if spread < 0.20
-                else 'Coupled families separate clearly from the transport-only baseline.'
+                else 'The electrodiffusive and vascular corrections separate clearly from the diffusion-only baseline.'
             ),
             'Read this as a synthetic scaffold sanity-check, not a calibrated anatomical estimate.',
         ]
@@ -349,10 +369,10 @@ def plot_case_fields(
     fig.colorbar(depth_plot, ax=axes[0, 0], shrink=0.80, label='Normalized sulcal depth')
 
     arrival_axes = {
-        'surface_scalar_transport': axes[0, 1],
-        'surface_tensor_transport': axes[0, 2],
-        'surface_scalar_vascular': axes[1, 1],
-        'surface_tensor_vascular': axes[1, 2],
+        'surface_diffusion_only': axes[0, 1],
+        'surface_anisotropic_diffusion': axes[0, 2],
+        'surface_electrodiffusion': axes[1, 1],
+        'surface_full_coupled': axes[1, 2],
     }
     for name, ax in arrival_axes.items():
         output = case_outputs[name]
@@ -412,40 +432,55 @@ def plot_case_fields(
     axes[1, 0].set_yticks([])
     fig.colorbar(axis_plot, ax=axes[1, 0], shrink=0.80, label='Normalized sulcal depth')
 
-    perfusion_axes = {
-        'surface_scalar_vascular': axes[2, 0],
-        'surface_tensor_vascular': axes[2, 1],
-    }
-    perfusion_min = min(float(np.nanmin(case_outputs[name].perfusion)) for name in perfusion_axes)
-    perfusion_max = max(float(np.nanmax(case_outputs[name].perfusion)) for name in perfusion_axes)
-    for name, ax in perfusion_axes.items():
-        output = case_outputs[name]
-        plot = ax.tripcolor(
-            triangulation,
-            output.perfusion,
-            shading='gouraud',
-            cmap='magma',
-            vmin=perfusion_min,
-            vmax=perfusion_max,
-        )
-        ax.tricontour(
-            triangulation,
-            np.asarray(mesh.sulcal_depth, dtype=float),
-            levels=[deep_threshold],
-            colors='white',
-            linewidths=0.9,
-            alpha=0.85,
-        )
-        ax.scatter(marker_x, marker_y, **marker_style)
-        ax.set_title(f'Perfusion reserve F: {CASE_SHORT_LABELS[name]}')
-        ax.set_aspect('equal')
-        ax.set_xticks([])
-        ax.set_yticks([])
-        fig.colorbar(plot, ax=ax, shrink=0.80, label='Perfusion reserve')
+    electrodiff_output = case_outputs['surface_electrodiffusion']
+    potential_plot = axes[2, 0].tripcolor(
+        triangulation,
+        electrodiff_output.electric_potential,
+        shading='gouraud',
+        cmap='coolwarm',
+    )
+    axes[2, 0].tricontour(
+        triangulation,
+        np.asarray(mesh.sulcal_depth, dtype=float),
+        levels=[deep_threshold],
+        colors='black',
+        linewidths=0.8,
+        alpha=0.75,
+    )
+    axes[2, 0].scatter(marker_x, marker_y, **marker_style)
+    axes[2, 0].set_title('Quasi-static dipole potential')
+    axes[2, 0].set_aspect('equal')
+    axes[2, 0].set_xticks([])
+    axes[2, 0].set_yticks([])
+    fig.colorbar(potential_plot, ax=axes[2, 0], shrink=0.80, label='Potential (a.u.)')
+
+    full_output = case_outputs['surface_full_coupled']
+    perfusion_plot = axes[2, 1].tripcolor(
+        triangulation,
+        full_output.perfusion,
+        shading='gouraud',
+        cmap='magma',
+        vmin=float(np.nanmin(full_output.perfusion)),
+        vmax=float(np.nanmax(full_output.perfusion)),
+    )
+    axes[2, 1].tricontour(
+        triangulation,
+        np.asarray(mesh.sulcal_depth, dtype=float),
+        levels=[deep_threshold],
+        colors='white',
+        linewidths=0.9,
+        alpha=0.85,
+    )
+    axes[2, 1].scatter(marker_x, marker_y, **marker_style)
+    axes[2, 1].set_title('Perfusion reserve F: full coupled')
+    axes[2, 1].set_aspect('equal')
+    axes[2, 1].set_xticks([])
+    axes[2, 1].set_yticks([])
+    fig.colorbar(perfusion_plot, ax=axes[2, 1], shrink=0.80, label='Perfusion reserve')
 
     render_summary_panel(axes[2, 2], rows_by_name)
 
-    fig.suptitle('Four surface experiment families on a synthetic folded cortical scaffold', fontsize=16)
+    fig.suptitle('Surface CSD families with extracellular diffusion and dipole electrodiffusion', fontsize=16)
     fig.text(
         0.5,
         0.012,
@@ -509,9 +544,13 @@ def main() -> None:
             'mean_baseline_reserve': float(np.nanmean(output.baseline_reserve)),
             'mean_d_perp': float(np.nanmean(output.d_perp)),
             'mean_d_parallel': float(np.nanmean(output.d_parallel)),
+            'mean_ecs_volume_fraction': float(np.nanmean(output.ecs_volume_fraction)),
+            'mean_ecs_tortuosity': float(np.nanmean(output.ecs_tortuosity)),
+            'max_abs_potential_au': float(np.nanmax(np.abs(output.electric_potential))),
             'crossed_fraction': float(np.mean(np.isfinite(output.arrival_times))),
             'vascular_feedback': bool(output.params.enable_vascular_feedback),
             'anisotropy': bool(output.params.enable_anisotropy),
+            'electromagnetic_dipole': bool(output.params.enable_electromagnetic_dipole),
         }
         rows.append(row)
         np.savez(
@@ -525,6 +564,10 @@ def main() -> None:
             baseline_reserve=output.baseline_reserve,
             d_parallel=output.d_parallel,
             d_perp=output.d_perp,
+            ecs_volume_fraction=output.ecs_volume_fraction,
+            ecs_tortuosity=output.ecs_tortuosity,
+            electric_potential=output.electric_potential,
+            swelling=output.swelling,
             snapshot_times=output.snapshot_times,
             snapshot_potassium=output.snapshot_potassium,
             snapshot_perfusion=output.snapshot_perfusion,

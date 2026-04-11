@@ -1,0 +1,148 @@
+{
+  "representative_rows": [
+    {
+      "case_label": "mechanistic_multion_baseline",
+      "case_title": "mechanistic multion baseline",
+      "mesh_vertices": 1792,
+      "mesh_faces": 3402,
+      "fold_depth_mm": 2.4,
+      "fold_sigma_mm": 1.5,
+      "stimulus_vertex": 471,
+      "electrode_1_vertex": 636,
+      "electrode_2_vertex": 624,
+      "dt_used_s": 0.04996995735874618,
+      "arrival_speed_mm_min": 2.4877680669462756,
+      "e1_arrival_s": 31.131283434498872,
+      "e2_arrival_s": 165.5504687295261,
+      "cross_fold_delay_s": 134.41918529502723,
+      "median_edge_speed_mm_min": 34.941629697551896,
+      "deep_edge_speed_mm_min": 37.3050191086009,
+      "shallow_edge_speed_mm_min": 34.85574749864924,
+      "crossed_fraction": 0.9190848214285714,
+      "max_abs_potential_au": 18.20177792720688,
+      "max_potassium_e_mM": 36.702874837110414,
+      "min_sodium_e_mM": 20.0,
+      "max_swelling_au": 1.499775457808975,
+      "min_oxygen_au": 1.0,
+      "min_perfusion_au": 0.6,
+      "dipole_alignment": false,
+      "vascular_feedback": false
+    },
+    {
+      "case_label": "mechanistic_multion_dipole",
+      "case_title": "mechanistic multion dipole",
+      "mesh_vertices": 1792,
+      "mesh_faces": 3402,
+      "fold_depth_mm": 2.4,
+      "fold_sigma_mm": 1.5,
+      "stimulus_vertex": 471,
+      "electrode_1_vertex": 636,
+      "electrode_2_vertex": 624,
+      "dt_used_s": 0.04996995735874618,
+      "arrival_speed_mm_min": 2.1063312044913864,
+      "e1_arrival_s": 31.131283434498872,
+      "e2_arrival_s": 190.28559762210546,
+      "cross_fold_delay_s": 159.1543141876066,
+      "median_edge_speed_mm_min": 16.72556419966306,
+      "deep_edge_speed_mm_min": 27.98781916695348,
+      "shallow_edge_speed_mm_min": 14.925555093454587,
+      "crossed_fraction": 0.8956473214285714,
+      "max_abs_potential_au": 22.17025622565362,
+      "max_potassium_e_mM": 39.53032249877573,
+      "min_sodium_e_mM": 20.0,
+      "max_swelling_au": 1.4997700208645055,
+      "min_oxygen_au": 1.0,
+      "min_perfusion_au": 0.6,
+      "dipole_alignment": true,
+      "vascular_feedback": false
+    },
+    {
+      "case_label": "mechanistic_multion_full_coupled",
+      "case_title": "mechanistic multion full coupled",
+      "mesh_vertices": 1792,
+      "mesh_faces": 3402,
+      "fold_depth_mm": 2.4,
+      "fold_sigma_mm": 1.5,
+      "stimulus_vertex": 471,
+      "electrode_1_vertex": 636,
+      "electrode_2_vertex": 624,
+      "dt_used_s": 0.04996995735874618,
+      "arrival_speed_mm_min": 2.913421496011843,
+      "e1_arrival_s": 30.931403605063885,
+      "e2_arrival_s": 144.31323685205896,
+      "cross_fold_delay_s": 113.38183324699509,
+      "median_edge_speed_mm_min": 6.8853398679366515,
+      "deep_edge_speed_mm_min": 8.926727415355955,
+      "shallow_edge_speed_mm_min": 6.214163173476449,
+      "crossed_fraction": 1.0,
+      "max_abs_potential_au": 12.430725142492363,
+      "max_potassium_e_mM": 31.298090910860893,
+      "min_sodium_e_mM": 20.0,
+      "max_swelling_au": 1.4997319534303957,
+      "min_oxygen_au": 0.2,
+      "min_perfusion_au": 0.25,
+      "dipole_alignment": true,
+      "vascular_feedback": true
+    }
+  ],
+  "geometry_summary": {
+    "n_folded_geometries": 12,
+    "n_flat_controls": 1,
+    "folded_cases_slower_with_dipole": 12,
+    "mean_speed_slowdown_mm_min": 0.24253655939991173,
+    "speed_slowdown_mm_min_ci95": [
+      0.20753785315494874,
+      0.27623425360606424
+    ],
+    "sd_speed_slowdown_mm_min": 0.06491961746618083,
+    "mean_relative_speed_slowdown_pct": 9.078988296125738,
+    "mean_delay_increase_s": 13.459708331914326,
+    "delay_increase_s_ci95": [
+      12.248190533460255,
+      14.645895260879799
+    ],
+    "sd_delay_increase_s": 2.216964075879593,
+    "mean_deep_edge_speed_slowdown_mm_min": 8.05163613099108,
+    "sd_deep_edge_speed_slowdown_mm_min": 7.352277961745454,
+    "speed_wilcoxon": {
+      "statistic": 78.0,
+      "pvalue": 0.000244140625
+    },
+    "delay_wilcoxon": {
+      "statistic": 78.0,
+      "pvalue": 0.000244140625
+    },
+    "deep_edge_wilcoxon": {
+      "statistic": 73.0,
+      "pvalue": 0.00244140625
+    },
+    "depth_vs_slowdown_spearman": {
+      "rho": 0.950033737592567,
+      "pvalue": 2.2548624661317155e-06
+    },
+    "severity_vs_slowdown_spearman": {
+      "rho": 0.6083916083916086,
+      "pvalue": 0.035805997052029234
+    },
+    "flat_control": {
+      "fold_depth_mm": 0.0,
+      "fold_sigma_mm": 1.5,
+      "fold_severity": 0.0,
+      "mesh_vertices": 1248,
+      "mesh_faces": 2346,
+      "baseline_arrival_speed_mm_min": 3.2816987504036814,
+      "dipole_arrival_speed_mm_min": 3.2816987504036814,
+      "baseline_cross_fold_delay_s": 70.6186244823478,
+      "dipole_cross_fold_delay_s": 70.6186244823478,
+      "baseline_deep_edge_speed_mm_min": 7.2703394084906705,
+      "dipole_deep_edge_speed_mm_min": 7.2703394084906705,
+      "baseline_max_abs_potential_au": 17.927180991981984,
+      "dipole_max_abs_potential_au": 17.927180991981984,
+      "speed_slowdown_mm_min": 0.0,
+      "delay_increase_s": 0.0,
+      "deep_edge_speed_slowdown_mm_min": 0.0
+    }
+  },
+  "figure_path": "C:\\work\\CSD\\outputs\\surface_mechanistic_study\\mechanistic_sulcal_slowing.png",
+  "runtime_s": 82.43930050000199
+}

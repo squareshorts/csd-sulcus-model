@@ -7,12 +7,21 @@ from .analysis import (
 )
 from .model import Params, SimulationOutput, run_simulation
 from .surface_io import SurfaceMesh, generate_folded_strip_mesh, load_surface_mesh
+from .surface_mechanistic import (
+    MechanisticSurfaceParams,
+    MechanisticSurfaceSimulationOutput,
+    mechanistic_edge_speed_stats,
+    mechanistic_surface_arrival_speed_mm_min,
+    run_mechanistic_surface_simulation,
+)
 from .surface_model import SurfaceParams, SurfaceSimulationOutput, run_surface_simulation, surface_arrival_speed_mm_min
 from .surface_prep import PreparedSurfaceBundle, derive_midthickness, prepare_surface_bundle, write_surface_bundle
 
 __all__ = [
     'ConditionComparison',
     'ElectrodeMeasurement',
+    'MechanisticSurfaceParams',
+    'MechanisticSurfaceSimulationOutput',
     'Params',
     'PreparedSurfaceBundle',
     'SimulationOutput',
@@ -23,8 +32,11 @@ __all__ = [
     'derive_midthickness',
     'generate_folded_strip_mesh',
     'load_surface_mesh',
+    'mechanistic_edge_speed_stats',
+    'mechanistic_surface_arrival_speed_mm_min',
     'multi_seed_robustness',
     'prepare_surface_bundle',
+    'run_mechanistic_surface_simulation',
     'run_simulation',
     'run_surface_simulation',
     'surface_arrival_speed_mm_min',

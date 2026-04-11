@@ -144,5 +144,6 @@
     }
   },
   "figure_path": "C:\\work\\CSD\\outputs\\surface_mechanistic_study\\mechanistic_sulcal_slowing.png",
-  "runtime_s": 82.43930050000199
+  "representative_figure_path": "C:\\work\\CSD\\outputs\\surface_mechanistic_study\\mechanistic_representative_summary.png",
+  "runtime_s": 75.44663079999737
 }

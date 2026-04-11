@@ -236,6 +236,38 @@ def _save_geometry_figure(rows: list[dict], output_path: Path) -> None:
     plt.close(fig)
 
 
+def _save_representative_figure(rows: list[dict], output_path: Path) -> None:
+    labels = ['Baseline', 'Dipole', 'Full coupled']
+    speed = np.asarray([row['arrival_speed_mm_min'] for row in rows], dtype=float)
+    delay = np.asarray([row['cross_fold_delay_s'] for row in rows], dtype=float)
+    potential = np.asarray([row['max_abs_potential_au'] for row in rows], dtype=float)
+    colors = ['#4c78a8', '#e45756', '#72b7b2']
+
+    fig, axes = plt.subplots(1, 3, figsize=(11.2, 4.0), constrained_layout=True)
+    x = np.arange(len(labels))
+
+    axes[0].bar(x, speed, color=colors, edgecolor='black', linewidth=0.5)
+    axes[0].set_xticks(x, labels, rotation=15)
+    axes[0].set_ylabel('Cross-fold speed (mm/min)')
+    axes[0].set_title('Representative speed')
+    axes[0].grid(axis='y', alpha=0.25)
+
+    axes[1].bar(x, delay, color=colors, edgecolor='black', linewidth=0.5)
+    axes[1].set_xticks(x, labels, rotation=15)
+    axes[1].set_ylabel('E1-E2 delay (s)')
+    axes[1].set_title('Representative delay')
+    axes[1].grid(axis='y', alpha=0.25)
+
+    axes[2].bar(x, potential, color=colors, edgecolor='black', linewidth=0.5)
+    axes[2].set_xticks(x, labels, rotation=15)
+    axes[2].set_ylabel('Max absolute potential (a.u.)')
+    axes[2].set_title('Extracellular field amplitude')
+    axes[2].grid(axis='y', alpha=0.25)
+
+    fig.savefig(output_path, dpi=180)
+    plt.close(fig)
+
+
 def _representative_rows(output_dir: Path) -> list[dict]:
     mesh = generate_folded_strip_mesh(nx=64, ny=28, length_mm=22.0, width_mm=10.0, fold_depth_mm=2.4, fold_sigma_mm=1.5)
     stimulus_vertex, e1_vertex, e2_vertex = choose_auto_vertices(mesh)
@@ -337,12 +369,15 @@ def main() -> None:
     representative_rows = _representative_rows(output_dir)
     geometry_rows, geometry_summary = _geometry_sweep_rows(output_dir)
     figure_path = output_dir / 'mechanistic_sulcal_slowing.png'
+    representative_figure_path = output_dir / 'mechanistic_representative_summary.png'
     _save_geometry_figure(geometry_rows, figure_path)
+    _save_representative_figure(representative_rows, representative_figure_path)
 
     summary = {
         'representative_rows': representative_rows,
         'geometry_summary': geometry_summary,
         'figure_path': str(figure_path),
+        'representative_figure_path': str(representative_figure_path),
         'runtime_s': float(time.perf_counter() - start),
     }
     with (output_dir / 'mechanistic_study_summary.json').open('w', encoding='utf-8') as handle:

@@ -1,32 +1,30 @@
 \documentclass[12pt]{article}
 
-\usepackage{amsmath, amssymb}
+\usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{geometry}
-\usepackage{authblk}
 \usepackage{setspace}
 \usepackage{natbib}
 \usepackage{hyperref}
-\usepackage{caption}
-\usepackage{float}
-\usepackage{subcaption}
-\usepackage{placeins}
 \usepackage{booktabs}
 
 \geometry{margin=1in}
 \doublespacing
-\graphicspath{{figures/}{../outputs/biophysical_grid_full/figures/}{../outputs/physiology_anchor/figures/}}
+\graphicspath{{figures/}}
 
-\newcommand{\ShortTitle}{Sulcal slowing in tensor CSD models}
-\newcommand{\TOCSummary}{Orientation-aware tensor coupling preserves sulcal slowing while reducing the magnitude predicted by isotropic scalar attenuation.}
+\newcommand{\ShortTitle}{Sulcal dipole slowing in mechanistic CSD}
+\newcommand{\TOCSummary}{A multi-ion surface electrodiffusion model predicts that sulcal dipole alignment adds a significant, fold-dependent slowing term on top of extracellular diffusion.}
 
-\title{Sulcal slowing of cortical spreading depolarization persists in tensor coupling models}
+\title{Sulcal dipole alignment slows cortical spreading depolarization in a mechanistic surface electrodiffusion model}
 
-\author[1]{Antonio Pereira\thanks{Correspondence: Antonio Pereira, \texttt{apereira@ufpa.br}; ORCID: 0000-0002-0808-1058.}}
-\author[2]{Rubem Guedes}
-
-\affil[1]{Institute of Technology, Federal University of Para (UFPA)}
-\affil[2]{Department of Nutrition, Federal University of Pernambuco (UFPE); \texttt{guedes.rca@gmail.com}; ORCID: 0000-0002-2396-4019}
+\author{
+Antonio Pereira\thanks{Correspondence: Antonio Pereira, \texttt{apereira@ufpa.br}; ORCID: 0000-0002-0808-1058.}\\
+\small Institute of Technology, Federal University of Para (UFPA)
+\and
+Rubem Guedes\\
+\small Department of Nutrition, Federal University of Pernambuco (UFPE)\\
+\small \texttt{guedes.rca@gmail.com}; ORCID: 0000-0002-2396-4019
+}
 
 \date{}
 
@@ -40,254 +38,165 @@
 \end{center}
 
 \begin{abstract}
-Cortical spreading depolarization (CSD) propagates through folded cortex at millimeters per minute, but whether sulcal slowing inferred from simplified models survives orientation-structured transport is unresolved. We simulated Barkley reaction--diffusion dynamics on a two-dimensional cortical sheet containing a curved sulcus and compared four localized coupling families: scalar-flat, scalar-Gaussian, tensor-flat, and tensor-Gaussian. We then repeated the full scalar--tensor sensitivity grid in a calibrated reduced potassium-buffer model and screened microstructure-constrained biophysical validation candidates. In the Barkley base model, the wavefront remained continuous and arrival times were delayed in sulcal relative to nonsulcal tissue, indicating that sulcal slowing is robust to model class. In the reduced biophysical grid, a representative 4.0-mm sulcus with $g_{\mathrm{sulcus}}=0.75$ propagated at 2.608 and 2.650 mm/min in the scalar-flat and scalar-Gaussian models, compared with 2.707 and 2.735 mm/min in the matched tensor models. Across that grid, tensor coupling increased propagation speed by 0.053 mm/min on average in the flat family and 0.048 mm/min in the Gaussian family relative to matched scalar cases, with the strongest slowing in the scalar-flat family at width 5.5 mm and $g_{\mathrm{sulcus}}=0.75$ ($\Delta v=-0.413$ mm/min). In a separate microstructure-constrained validation sweep, 63 of 72 biophysical candidates satisfied all acceptance criteria; the best candidate yielded 2.607 mm/min in the scalar case and 2.684 mm/min in the tensor case, with a tensor-minus-scalar gain of 0.077 mm/min. Across all accepted candidates, scalar and tensor speeds remained within published CSD speed bands from experimentally studied cortex (2.0--5.0 mm/min) and human malignant stroke (1.7--9.2 mm/min). Thus, localized sulcal slowing persists in both minimal and reduced biophysical models, but isotropic scalar attenuation overestimates its magnitude relative to orientation-aware tensor transport.
+Cortical spreading depolarization (CSD) slows in sulci, but the mechanism of that slowing is still debated because scalar attenuation models, tensor transport models, and electrodiffusive models emphasize different aspects of cortical folding. We asked whether sulcal dipole alignment can impose a measurable additional delay in a mechanistic surface model that keeps extracellular diffusion central while representing ionic drift and membrane charge separation explicitly. We implemented a folded-surface electrodiffusion model with overlapping extracellular and intracellular compartments, explicit extracellular and intracellular K$^+$, Na$^+$, and Cl$^-$ concentrations, Goldman--Hodgkin--Katz membrane voltage, leak and activation-dependent membrane currents, Na/K pump dynamics, dynamic extracellular-space volume fraction and tortuosity, and a quasi-static dipole-driven extracellular potential field aligned to local surface normals. We then compared the same mechanistic model with dipole alignment disabled or enabled across one representative folded surface and a paired geometry sweep spanning 12 folded surfaces plus a flat control. In the representative folded case, cross-fold propagation slowed from 2.488 to 2.106~mm/min when the dipole term was enabled, while cross-fold delay increased from 134.4 to 159.2~s. Across the full sweep, all 12 folded geometries slowed with dipole alignment, whereas the flat control was unchanged. The mean dipole-induced slowdown was 0.243~mm/min (95\% bootstrap confidence interval 0.208--0.276~mm/min), corresponding to a 9.08\% reduction in speed and a mean delay increase of 13.46~s (95\% confidence interval 12.25--14.65~s). Paired Wilcoxon signed-rank tests were significant for cross-fold speed ($p=2.44\times 10^{-4}$), cross-fold delay ($p=2.44\times 10^{-4}$), and deep-edge local speed ($p=2.44\times 10^{-3}$). Slowdown increased strongly with fold depth (Spearman $\rho=0.95$, $p=2.25\times 10^{-6}$). These results support a mechanistic interpretation in which extracellular diffusion remains the backbone of propagation, but sulcal dipole alignment adds a significant, geometry-specific electrodiffusive slowing term that is absent on a flat surface.
 \end{abstract}
 
-\noindent \textbf{Keywords:} cortical spreading depolarization, sulcus, anisotropy, tensor diffusion, excitable media, cortical folding, model comparison
+\noindent \textbf{Keywords:} cortical spreading depolarization, electrodiffusion, sulcus, extracellular diffusion, dipole alignment, cortical folding, surface model
 
 \section{Introduction}
 
-Cortical spreading depolarization (CSD) is a propagating wave of near-complete depolarization of neurons and glia that travels across cortex at a few millimeters per minute and is relevant to migraine aura and acute brain injury \citep{Pietrobon2014,Ayata2015,Woitzik2013,Mathew2022}. At mesoscale resolution, however, the impact of cortical folding on CSD remains difficult to separate from cytoarchitecture, vascular effects, and measurement geometry. Sulci are especially important because they combine strong local curvature with abrupt changes in source orientation and extracellular field geometry \citep{Murakami2006,Ahlfors2010a,Ahlfors2010b,Muller2023,Reimann2022}.
+Cortical spreading depolarization (CSD) is a propagating wave of near-complete cellular depolarization that travels through cortex at millimeters per minute and is implicated in migraine aura, ischemic injury, and traumatic brain injury \citep{Pietrobon2014,Ayata2015,Woitzik2013,Dreier2017}. The effect of cortical folding on CSD propagation remains difficult to isolate because sulci alter extracellular geometry, tissue orientation, and the alignment of current sources simultaneously. As a result, a slower wave in the sulcus can be interpreted as reduced effective coupling, altered preferred transport orientation, or a field-mediated electrodiffusive effect.
 
-A minimal sulcal model can represent the fold as a compartment with reduced isotropic effective coupling. That approximation is useful, but it collapses two distinct geometric effects into one scalar field: a change in local coupling magnitude and a change in preferred transport orientation imposed by the fold. Work on EEG/MEG forward models has shown that local folding geometry and source orientation strongly affect mesoscale observables, including enhancement and cancellation profiles across gyri and sulci \citep{Ahlfors2010a,Ahlfors2010b,Irimia2012,Muller2023,Reimann2022}. That literature does not address CSD propagation directly, but it establishes the more general point that sulcal geometry is orientation-structured rather than geometry-neutral. Recent reaction--diffusion modeling of pharmacological CSD modulation has demonstrated that minimal excitable-medium frameworks, combined with targeted diffusion manipulations, can reproduce experimentally observed changes in propagation dynamics \citep{GuerreroPrieto2025}. The present work extends that modeling approach from pharmacological to geometrical questions.
+Earlier modeling work in this repository addressed that question using scalar attenuation fields and orientation-aware tensor transport. Those studies were useful for showing that sulcal slowing survives when directional structure is represented explicitly, but they did not resolve ionic concentrations, extracellular charge redistribution, or dynamic extracellular-space (ECS) restriction. That limitation matters because the CSD literature consistently places extracellular ionic diffusion, homeostatic membrane fluxes, and ECS geometry at the center of propagation \citep{Tuckwell1978,Wei2014,Zandt2015}. In that literature, the electrical component is typically represented not as propagating electromagnetic radiation, but as quasi-static extracellular potential generated by membrane currents and ionic concentration gradients.
 
-Here we ask whether predicted sulcal slowing survives when that directional structure is included explicitly in the transport operator. We compare conventional scalar attenuation models with tensor diffusion fields aligned to the sulcal centerline, then test the same scalar--tensor ordering in a reduced potassium-buffer model and a microstructure-constrained validation sweep. The goal is not to infer a unique physiological mechanism from a single parameterization, but to determine whether sulcal delay is robust to model class, whether isotropic reductions systematically overestimate its magnitude, and whether accepted physiologically constrained cases remain within published CSD speed ranges.
+The present study therefore asks a more mechanistic question: if extracellular diffusion remains the backbone of propagation, does sulcal dipole alignment impose an additional slowing term when ionic drift, membrane voltage, pump dynamics, and ECS swelling are represented explicitly on a folded cortical surface? Our working hypothesis is that sulcal dipole alignment should be specific to folded geometries, negligible on a flat control, and stronger in deeper or narrower folds because those geometries increase the alignment between membrane-current source orientation and the cross-sulcus propagation path. That hypothesis is motivated by the general principle from EEG/MEG forward modeling that cortical folding and dipole orientation strongly shape mesoscale extracellular fields \citep{Ahlfors2010a,Ahlfors2010b,Muller2023,Reimann2022}, but here it is tested against CSD propagation rather than observability.
 
 \section{Materials and methods}
 
-\subsection{Base excitable-medium dynamics}
+\subsection{Synthetic cortical-surface geometry}
 
-We simulate CSD-like propagation with Barkley reaction--diffusion kinetics \citep{Barkley1991}:
-\begin{align}
-\frac{\partial u}{\partial t} &= \frac{1}{\epsilon}u(1-u)\left(u-\frac{v+b}{a}\right) + \nabla\cdot\left(\mathbf{D}(x,y)\nabla u\right), \\
-\frac{\partial v}{\partial t} &= u-v,
-\end{align}
-with $a=0.75$, $b=0.02$, and $\epsilon=0.02$. The computational domain is a $200\times 140$ grid, with $dx=0.1$ mm and $dt=0.002$ s, corresponding to a physical field of view of 19.9 mm in the $x$ direction and 13.9 mm in the $y$ direction. A circular stimulus of radius 1.2 mm is centered at normalized coordinates $(0.15,0.50)$ and sets $u=0.95$ within the stimulus mask at initialization. No-flux boundary conditions are enforced.
+We used a triangulated folded-strip surface to isolate sulcal geometry while keeping the model computationally tractable. The representative surface contained 1,792 vertices and 3,402 triangular faces over a 22~mm by 10~mm domain, with a central sulcal depression generated by a Gaussian fold profile of depth 2.4~mm and width parameter $\sigma=1.5$~mm. Each vertex carried normalized sulcal-depth, thickness, and vascular-risk fields derived from the synthetic geometry. A tangential preferred-axis field followed the long axis of the folded strip. The geometry sweep used 12 folded surfaces with depths 1.2, 1.8, 2.4, and 3.0~mm crossed with width parameters $\sigma \in \{1.1,1.5,1.9\}$~mm, plus a flat control with zero fold depth.
 
-\subsection{Sulcal geometry and scalar coupling families}
+Propagation was initiated by a focal stimulus placed on one sulcal bank. Arrival time was then measured at two automatically selected electrode regions on opposite banks. The primary readout was the cross-fold propagation speed inferred from the geodesic distance between the electrode regions and the difference between their median arrival times. This metric is directly analogous to the inter-electrode timing readouts reported in invasive CSD studies \citep{Dreier2017}.
 
-The sulcal centerline was prescribed directly from the simulation parameters as
-\[
-x_c(y)=9.95 + 1.99\sin\!\left(2\pi\frac{y}{13.9}\right) \; \mathrm{mm},
-\]
-which corresponds to a normalized center position of 0.50, a normalized sinusoidal amplitude of 0.10, one sinusoidal cycle over the domain, and zero phase shift. At each grid point we define the signed horizontal offset
-\[
-\phi(x,y)=x-x_c(y).
-\]
-For a chosen sulcus width $w$, the sulcal mask is
-\[
-\mathcal{S}_w=\{(x,y): |\phi(x,y)|\leq w/2\}.
-\]
+\subsection{Mechanistic surface electrodiffusion model}
 
-Two scalar attenuation envelopes were used. In the scalar-flat family, a binary mask equal to 1 inside $\mathcal{S}_w$ and 0 outside was smoothed with a Gaussian kernel of standard deviation $\sigma_{\mathrm{edge}}=1.2$ mm and then clipped to the interval $[0,1]$; after smoothing, all pixels belonging to the original sulcal mask were reset to 1. In the scalar-Gaussian family, the weight field was
-\[
-\omega_{\mathrm{gauss}}(x,y)=\exp\!\left[-\frac{\phi(x,y)^2}{2\sigma_g^2}\right],
-\]
-with $\sigma_g=\max(w/2,dx)$. For all widths reported here ($w\in\{2.5,4.0,5.5\}$ mm), this reduces to $\sigma_g=w/2$.
+The surface model evolves explicit extracellular and intracellular concentrations of K$^+$, Na$^+$, and Cl$^-$ on overlapping surface compartments. For each ionic species $s \in \{\mathrm{K},\mathrm{Na},\mathrm{Cl}\}$, the extracellular concentration $c_s^{e}$ obeys
+\begin{equation}
+\frac{\partial c_s^{e}}{\partial t}
+= \nabla_{\Gamma}\cdot\left[D_s(\alpha,\lambda)\left(\nabla_{\Gamma} c_s^{e} + z_s \beta_{\mathrm{ed}} c_s^{e}\nabla_{\Gamma}\phi\right)\right]
+ \frac{J_s^{m}}{\alpha},
+\end{equation}
+where $\Gamma$ is the cortical surface, $\alpha$ is local ECS volume fraction, $\lambda$ is tortuosity, $z_s$ is ion valence, $D_s$ is the effective surface diffusivity, $\beta_{\mathrm{ed}}$ is the electrodiffusion gain, and $J_s^{m}$ is the membrane source term. The intracellular compartment is updated by mass conservation,
+\begin{equation}
+\frac{\partial c_s^{i}}{\partial t} = -\frac{J_s^{m}}{1-\alpha}.
+\end{equation}
+Effective extracellular diffusion was scaled by $\alpha/\lambda^2$, so deeper and more swollen tissue automatically restricted diffusion more strongly.
 
-In both scalar families, the diffusion tensor is isotropic,
-\[
-\mathbf{D}(x,y)=D_0 g(x,y)\mathbf{I},
-\]
-with baseline diffusivity $D_0=0.01$ and coupling field
-\[
-g(x,y)=1-(1-g_{\mathrm{sulcus}})\,\omega(x,y),
-\]
-where $\omega(x,y)$ is the profile-specific weight field and $g_{\mathrm{sulcus}}\in\{0.95,0.85,0.75\}$.
+Membrane voltage was updated from a Goldman--Hodgkin--Katz relation using dynamic ionic concentrations and activation-dependent permeabilities. Leak and activated membrane currents were represented by conductance-based terms referenced to the Nernst potentials of K$^+$, Na$^+$, and Cl$^-$. The Na/K pump depended on intracellular Na$^+$, extracellular K$^+$, and, in the vascular sensitivity analysis, local oxygen:
+\begin{equation}
+P_{\mathrm{pump}} = P_{\max} f_{\mathrm{Na}}(c_{\mathrm{Na}}^{i}) f_{\mathrm{K}}(c_{\mathrm{K}}^{e}) f_{\mathrm{O}_2}(O).
+\end{equation}
+An activation variable $\theta$ evolved sigmoidally as a function of extracellular K$^+$ and membrane voltage and controlled the transition between resting and depolarized membrane conductances.
 
-\subsection{Orientation-aware tensor coupling family}
+The extracellular electrical field was treated quasi-statically. Charge-density deviations from rest were defined as
+\begin{equation}
+\rho_e = (c_{\mathrm{K}}^{e}-c_{\mathrm{K},0}^{e}) + (c_{\mathrm{Na}}^{e}-c_{\mathrm{Na},0}^{e}) - (c_{\mathrm{Cl}}^{e}-c_{\mathrm{Cl},0}^{e}),
+\end{equation}
+and the potential field $\phi$ was obtained from a screened surface equation,
+\begin{equation}
+-\nabla_{\Gamma}\cdot(\sigma_{\phi}\nabla_{\Gamma}\phi) + \kappa \phi
+= \gamma_{\rho}\rho_e - \gamma_{d}\mathcal{K}_{d}[I_m],
+\end{equation}
+where $\sigma_{\phi}$ is a conductivity-like surface operator, $\kappa$ is a screening term, $I_m$ is the deviation of the net membrane current from rest, and $\mathcal{K}_{d}$ is a dipole-interaction operator constructed from the local surface normals. This term represents the hypothesis that the relative orientation of membrane-current dipoles and sulcal geometry contributes to extracellular drift. It is therefore not a full Maxwell-wave model; instead, it is a quasi-static electrodiffusive correction layered onto extracellular diffusion.
 
-To model geometry-aware directional transport, we construct a local unit tangent field from the derivative of the sulcal centerline,
-\[
-\mathbf{t}(y)=\frac{(x_c'(y),1)}{\sqrt{1+x_c'(y)^2}},
-\]
-and the corresponding unit normal field
-\[
-\mathbf{n}(y)=(t_y,-t_x).
-\]
-The tensor family uses the same profile-specific attenuation envelope in the normal direction and a weaker attenuation in the tangential direction:
-\[
-g_n(x,y)=g(x,y),
-\]
-\[
-g_t(x,y)=1-\eta\left(1-g_n(x,y)\right),
-\]
-with $\eta=0.4$. The diffusion tensor is then
-\[
-\mathbf{D}(x,y)=D_0\left(g_t(x,y)\,\mathbf{t}\mathbf{t}^\top + g_n(x,y)\,\mathbf{n}\mathbf{n}^\top\right).
-\]
-This construction preserves easier along-sulcus propagation while still penalizing cross-sulcus spread.
+\subsection{Dynamic extracellular space and vascular sensitivity}
 
-To reduce the arbitrariness of the tensor parameterization, we also used a physiology-constrained tensor mode in which the tangential-to-normal coupling ratio was restricted to a conservative cortex-like range rather than chosen only as a free attenuation ratio. This choice was motivated by diffusion-MRI studies showing that adult cortical gray matter is weakly but measurably anisotropic, with orientation defined relative to cortical geometry, depth-dependent radial structure, and coherent tangential intracortical components \citep{McNab2013,Truong2014,Leuze2014}. Because these measurements do not provide a direct estimate of CSD transport coefficients, we did not fit the tensor directly to dMRI eigenvalues. Instead, we used a modest tangential/normal coupling ratio band of 1.05--1.30, with 1.15 as the default, to encode weak directional preference at the mesoscale while avoiding white-matter-like anisotropy.
+The model included dynamic ECS restriction through a swelling variable $s$ driven by intracellular osmotic load and activation:
+\begin{equation}
+\tau_{s}\frac{ds}{dt} = s_{\infty}(c^i,\theta) - s.
+\end{equation}
+Increasing swelling reduced ECS volume fraction and increased tortuosity, feeding back on diffusion. In the primary mechanistic comparison, vascular feedback was disabled so that the dipole effect could be isolated cleanly within the same ionic model. A secondary sensitivity analysis enabled a perfusion--oxygen--constriction subsystem in which oxygen-dependent pump support and constriction-dependent threshold modulation altered excitability. Because this extension changes the overall physiological regime, it was treated as exploratory rather than as the main mechanistic test of the dipole hypothesis.
 
-\subsection{Parameter grid and readouts}
+\subsection{Numerical implementation and statistics}
 
-Unless otherwise stated, the sensitivity analysis used sulcal widths
-$w\in\{2.5,4.0,5.5\}$ mm, attenuation values $g_{\mathrm{sulcus}}\in\{0.95,0.85,0.75\}$, two coupling envelopes (flat and Gaussian), and two transport classes (scalar and tensor), yielding 36 perturbed cases plus the matched control.
+Surface transport was discretized on the triangular mesh with lumped-mass finite elements and edge-based fluxes. Time integration used explicit Euler with an automatically chosen stable time step; in the representative run the step size was 0.04997~s. The representative folded-surface comparison ran for 220~s, and the geometry sweep ran for 210~s per case.
 
-We use two complementary readouts. First, a virtual-electrode speed metric measures arrival-time differences between two circular regions of interest (ROIs) of radius 1.0 mm centered at normalized coordinates $E_1=(0.43,0.50)$ and $E_2=(0.62,0.50)$. Their center-to-center Euclidean distance is 3.781 mm. Pixelwise arrival time is defined as the first time at which $u\ge 0.5$ after $t\ge 0.5$ s. ROI arrival time is the median of the pixelwise arrival times within the ROI mask. Reported speeds are rescaled by a single multiplicative factor so that the matched control condition equals 3.000 mm/min.
-
-Second, arrival-time fields $T(x,y)$ are converted into local speed maps according to
-\[
-v_{\mathrm{local}}(x,y)=\frac{1}{\|\nabla T(x,y)\|},
-\]
-with the final values reported in mm/min by multiplying by 60. Spatial gradients were computed with centered differences in both directions. Pixels with undefined arrival times or local speeds above 15 mm/min were excluded. Median local speeds were computed within the sulcal mask and in 2.0-mm bands immediately upstream and downstream of the sulcus,
-\[
--(w/2+2.0)\le \phi(x,y) < -w/2
-\]
-and
-\[
-w/2 < \phi(x,y) \le w/2+2.0,
-\]
-respectively.
-
-\subsection{Numerical implementation}
-
-The diffusion term was discretized in flux-conservative form on the Cartesian grid. For the tensor case, the operator was evaluated as
-\[
-\nabla\cdot(\mathbf{D}\nabla u)=\partial_x(D_{xx}u_x + D_{xy}u_y)+\partial_y(D_{xy}u_x + D_{yy}u_y),
-\]
-where the face fluxes were built from centered spatial derivatives and arithmetic averaging of the tensor coefficients to cell faces. Time integration used explicit forward Euler with a CFL number of $D_0 \cdot dt / dx^2 = 0.002$, well below the stability limit of 0.25 for two-dimensional explicit diffusion. Each manuscript-scale simulation ran for 200,000 time steps, corresponding to 400~s of simulated time, which was sufficient for the wavefront to traverse the analysis region in all reported cases. Because the Barkley kinetics are deterministic and no stochastic forcing is applied, all simulations are exactly reproducible given the same parameters; reported values are therefore point estimates rather than sample statistics.
-
-Grid convergence was verified by repeating the representative case ($w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile) at three spatial resolutions: $dx\in\{0.20, 0.10, 0.05\}$~mm with matched time steps. The anisotropy gain (tensor minus scalar speed) converged from 0.119 to 0.107 to 0.104~mm/min, confirming that the reported scalar--tensor differences are well above the discretization error at the manuscript resolution.
-
-The systematic advantage of tensor over scalar coupling in the calibrated biophysical nine-point parameter grid was tested with paired Wilcoxon signed-rank tests (one-sided, $H_1$: tensor $>$ scalar). In both profile families, all nine matched pairs showed positive anisotropy gain. The Wilcoxon statistic was $W=45$ (the maximum possible for $n=9$), yielding $p=0.0020$ for both families. Paired $t$-tests confirmed the same conclusion (flat: $t(8)=4.90$, $p=0.00060$; Gaussian: $t(8)=4.94$, $p=0.00056$).
-
-All simulations and analyses were run in Python using NumPy, SciPy, and Matplotlib. The accompanying project specification declares Python $\geq$ 3.10, NumPy $\geq$ 1.23, SciPy $\geq$ 1.10, and Matplotlib $\geq$ 3.7.
-
-\subsection{Reduced biophysical spreading-depolarization model and validation sweep}
-
-To test whether the scalar-versus-tensor ordering depended on Barkley kinetics, we added a reduced biophysical spreading-depolarization model in which the propagating variable is extracellular potassium and the recovery variable is buffer availability. Potassium release was activated sigmoidally above threshold, clearance depended on the available buffer fraction, and the same spatial transport operator used in the Barkley model was applied to the potassium field. This reduced formulation was intended as a computationally tractable bridge toward fuller ion-dynamics models of spreading depolarization \citep{Tuckwell1978,Wei2014,Zandt2015}, rather than as a complete electrodiffusive description.
-
-For the calibrated biophysical grid, the potassium-buffer model was run with fixed kinetics parameters and the same four spatial coupling families used in the Barkley study. We then performed a separate validation sweep for the physiology-constrained tensor mode by varying release rate, clearance rate, potassium threshold, and arrival threshold across 72 candidate parameterizations. Candidates were scored on five qualitative criteria: scalar slowing relative to control at the virtual-electrode metric, tensor speed exceeding the matched scalar speed at the virtual-electrode metric, scalar slowing within the sulcal compartment, tensor sulcal speed exceeding the matched scalar sulcal speed, and a positive downstream scalar delay. A candidate was accepted only if all five criteria were satisfied.
-
-As a minimal external physiological anchor, we compared the accepted candidate speeds against three published CSD propagation bands of increasing stringency. The broadest band covers 2.0--5.0 mm/min from general experimental cortex recordings \citep{Lauritzen2011}, and the second covers 1.7--9.2~mm/min observed in human malignant stroke \citep{Woitzik2013}. The narrowest and most discriminating band covers 2.5--4.5~mm/min, derived from controlled animal and human CSD recordings in which electrode geometry and propagation pathway are more precisely constrained \citep{Ayata2015,Dreier2017}. To engage a physically distinct observable, we also compared the scalar downstream delay of all accepted candidates against the inter-electrode arrival-time range of 10--30~s reported by the COSBID group for 3--5~mm electrode separations in human neocortex \citep{Dreier2017}. These checks were intentionally narrow: they ask only whether the accepted scalar and tensor cases occupy a documented CSD propagation regime while preserving the same scalar-versus-tensor ordering, not whether the reduced model reproduces the full ionic phenomenology of spreading depolarization.
+The primary mechanistic test was paired: for each geometry, we ran the same electrodiffusion model with dipole alignment disabled or enabled and compared the resulting cross-fold speed and delay. Folded geometries were analyzed with one-sided paired Wilcoxon signed-rank tests under the directional alternative that dipole alignment decreases propagation speed and increases delay. We also computed bootstrap 95\% confidence intervals for the mean speed slowdown and delay increase, and Spearman correlations between dipole-induced slowing and fold geometry.
 
 \section{Results}
 
-\subsection{Sulcal slowing survives scalar-to-tensor model changes}
+\subsection{Representative mechanistic slowing}
 
-Across all tested Barkley families, the wavefront remained continuous and the sulcus exhibited delayed arrival times relative to matched control tissue (Fig.~\ref{fig:wavefront}). This is the central robustness result: localized sulcal slowing did not disappear when the coupling model became orientation-aware. In the calibrated biophysical grid, the full-grid speed-reduction heatmaps show the same qualitative pattern across scalar-flat, scalar-Gaussian, tensor-flat, and tensor-Gaussian families, with stronger slowing as sulcus width increased and $g_{\mathrm{sulcus}}$ decreased (Fig.~\ref{fig:delta_speed}).
+In the representative folded geometry, enabling sulcal dipole alignment slowed cross-fold propagation from 2.488 to 2.106~mm/min and increased the E1--E2 delay from 134.4 to 159.2~s (Table~\ref{tab:representative}; Fig.~\ref{fig:representative}). The maximum absolute extracellular potential also increased from 18.20 to 22.17 arbitrary units, consistent with a stronger field-mediated contribution in the dipole-aligned case. This was not a generic consequence of turning on more model terms: the comparison was performed within the same multi-ion mechanistic solver, with identical geometry, diffusion fields, membrane kinetics, and swelling dynamics.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{fig_wavefront_snapshots.png}
-\caption{Wavefront propagation through the sulcal region for the representative case ($w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile). Columns show control (no sulcal attenuation), scalar-flat, and tensor-flat models. Rows show three time snapshots ($t=80$, 140, and 220~s). White contours mark the sulcal boundary. The wavefront remains continuous in all models but is visibly delayed in the scalar and tensor conditions relative to control, with the scalar-flat case showing the strongest delay.}
-\label{fig:wavefront}
+\includegraphics[width=\textwidth]{fig_mechanistic_representative_summary.png}
+\caption{Representative mechanistic comparison on the folded surface. Bars show cross-fold propagation speed, cross-fold delay between the two electrode regions, and maximum absolute extracellular potential for the baseline mechanistic model, the same model with sulcal dipole alignment enabled, and the exploratory vascularly coupled extension. The primary mechanistic comparison is the paired baseline-versus-dipole contrast. The vascular extension is shown only as a sensitivity analysis because it changes the overall excitability regime.}
+\label{fig:representative}
 \end{figure}
-
-\subsection{Tensor transport moderates the magnitude of slowing}
-
-The main quantitative difference is not whether slowing exists, but how large it is. In the representative calibrated biophysical case (sulcus width 4.0 mm, $g_{\mathrm{sulcus}}=0.75$), scalar-flat and scalar-Gaussian cases slowed to 2.608 and 2.650 mm/min, respectively. The matched tensor-flat and tensor-Gaussian cases increased to 2.707 and 2.735 mm/min. Thus, introducing orientation-aware transport raised speed by 0.099 mm/min in the flat family and 0.085 mm/min in the Gaussian family. The same moderation appeared in local sulcal speed maps and sulcal compartment medians (Figs.~\ref{fig:anisotropy_gain} and \ref{fig:sulcus_speed}): relative to the control sulcal median of 2.958 mm/min, the scalar-flat and tensor-flat cases fell to 2.543 and 2.605 mm/min, while the scalar-Gaussian and tensor-Gaussian cases fell to 2.605 and 2.667 mm/min.
 
 \begin{table}[t]
 \centering
-\caption{Representative scalar-versus-tensor comparison from the manuscript-scale sensitivity study (sulcus width 4.0 mm, $g_{\mathrm{sulcus}}=0.75$).}
+\caption{Representative mechanistic comparison for the folded surface (fold depth 2.4~mm, $\sigma=1.5$~mm).}
 \label{tab:representative}
-\begin{tabular}{@{}llll@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Family & Speed (mm/min) & $\Delta v$ vs control (mm/min) & Interpretation \\
+Case & Speed (mm/min) & Delay (s) & Max $|\phi|$ (a.u.) & Min oxygen \\
 \midrule
-Scalar flat & 2.608 & -0.392 & Strongest representative slowing in the calibrated biophysical grid \\
-Tensor flat & 2.707 & -0.293 & Slower than control, but less extreme than the matched scalar case \\
-Scalar Gaussian & 2.650 & -0.350 & Moderate slowing with a smooth attenuation envelope \\
-Tensor Gaussian & 2.735 & -0.265 & Orientation-aware moderation persists in the reduced biophysical model \\
+Baseline mechanistic & 2.488 & 134.4 & 18.20 & 1.00 \\
+Dipole-aligned mechanistic & 2.106 & 159.2 & 22.17 & 1.00 \\
+Full coupled sensitivity & 2.913 & 113.4 & 12.43 & 0.20 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Upstream--downstream asymmetry of sulcal delay}
+The flat control provided an internal specificity check. When fold depth was set to zero, enabling the dipole term produced no change in cross-fold speed (3.282~mm/min in both conditions) and no change in cross-fold delay (70.62~s in both conditions). Thus, the effect requires folding geometry and is not merely a numerical artifact of adding a potential equation.
 
-The delay imposed by the sulcus was strongly asymmetric: in the representative scalar-flat biophysical case the median upstream delay was 0.66~s, while the median downstream delay was 16.18~s. This pattern persisted across all model families and parameter combinations. The sulcus therefore acts as a slow-release bottleneck rather than a uniform damper: the wavefront enters the sulcal region with only a modest delay but accumulates a large arrival-time deficit that persists well downstream of the sulcal boundary. The tensor-flat model showed the same asymmetry with reduced magnitude (upstream 0.46~s, downstream 13.52~s), consistent with orientation-aware transport partially alleviating the bottleneck effect.
+\subsection{Geometry-sweep slowing}
 
-\subsection{Isotropic scalar models behave like upper-bound slowing models}
-
-Across the full calibrated biophysical sensitivity grid, tensor coupling increased propagation speed by $0.053 \pm 0.033$~mm/min (mean $\pm$ SD, $n=9$ matched pairs) relative to scalar cases in the flat family and by $0.048 \pm 0.029$~mm/min in the Gaussian family. All 18 matched pairs showed positive anisotropy gain (Wilcoxon signed-rank $W=45$, $p=0.0020$ for both families). The worst slowing in the explored biophysical grid occurred in the scalar-flat family, not in the tensor family: the width-5.5~mm, $g_{\mathrm{sulcus}}=0.75$ scalar-flat case reached 2.587~mm/min ($\Delta v=-0.413$~mm/min), whereas the matched tensor-flat case remained faster at 2.687~mm/min. This supports the same interpretation in the reduced model: scalar sulcal attenuation provides an upper-bound estimate of slowing, whereas tensor transport provides a more conservative estimate that preserves directional structure.
-
-\subsection{The scalar--tensor ordering is robust to the tangential attenuation ratio}
-
-To assess sensitivity to the prescribed tangential attenuation ratio $\eta$, we swept $\eta$ from 0 (complete tangential preservation) to 1 (scalar recovery) at the representative case ($w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile; Fig.~\ref{fig:eta_sweep}). The anisotropy gain decreased monotonically from 0.171~mm/min at $\eta=0$ to 0~mm/min at $\eta=1$, as expected. Crucially, the tensor model was faster than the matched scalar model for every $\eta < 1$. The manuscript value $\eta=0.4$ lies near the middle of the accessible range, yielding an anisotropy gain of 0.107~mm/min. Even at $\eta=0.8$, the gain remained positive at 0.036~mm/min. This confirms that the scalar--tensor ordering is not an artifact of a particular $\eta$ choice but a structural consequence of preserving easier along-sulcus transport.
+The paired geometry sweep gave a stronger and more general version of the same result (Fig.~\ref{fig:sweep}; Table~\ref{tab:stats}). All 12 folded geometries were slower with dipole alignment, whereas the flat control again showed exactly zero effect. The mean dipole-induced slowdown was 0.243~mm/min (95\% bootstrap confidence interval 0.208--0.276~mm/min), corresponding to a mean 9.08\% reduction in speed. The associated increase in cross-fold delay was 13.46~s (95\% confidence interval 12.25--14.65~s). One-sided paired Wilcoxon signed-rank tests were significant for cross-fold speed ($p=2.44\times 10^{-4}$), cross-fold delay ($p=2.44\times 10^{-4}$), and deep-edge local speed ($p=2.44\times 10^{-3}$).
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{fig_eta_sensitivity.png}
-\caption{Sensitivity of propagation speed to the tangential attenuation ratio $\eta$. Left, virtual-electrode speed; right, median sulcal local speed. At $\eta=0$, the tangential direction is unattenuated and the tensor model propagates fastest. At $\eta=1$, the tensor model recovers the isotropic scalar result. The horizontal dashed line marks the scalar-flat baseline. Representative case: $w=4.0$~mm, $g_{\mathrm{sulcus}}=0.75$, flat profile.}
-\label{fig:eta_sweep}
+\includegraphics[width=\textwidth]{fig_mechanistic_sulcal_slowing.png}
+\caption{Paired mechanistic geometry sweep. Left, each line connects the no-dipole and dipole-aligned cross-fold speeds for one folded geometry. Right, dipole-induced slowing plotted against fold severity (depth divided by width parameter $\sigma$); point color indicates fold depth. The flat control is plotted separately as a square at zero slowing. Every folded geometry slowed with dipole alignment, whereas the flat control was unchanged.}
+\label{fig:sweep}
 \end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{fig_biophysical_delta_speed_heatmaps.png}
-\caption{Propagation-speed change across model families in the calibrated reduced potassium-buffer model. Heatmaps show $\Delta v = v - 3.000$ mm/min for virtual-electrode speed after calibration of the control condition to 3.000 mm/min. Within each panel, the x-axis is attenuation factor ($g_{\mathrm{sulcus}}=0.95$, 0.85, 0.75) and the y-axis is sulcus width ($w=2.5$, 4.0, 5.5 mm). From left to right, panels show the scalar-flat, scalar-Gaussian, tensor-flat, and tensor-Gaussian families. More negative values indicate stronger slowing relative to control.}
-\label{fig:delta_speed}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\begin{minipage}[c]{0.40\textwidth}
-\centering
-\includegraphics[width=\linewidth]{fig_biophysical_anisotropy_gain_heatmaps.png}
-\end{minipage}
-\hfill
-\begin{minipage}[c]{0.58\textwidth}
-\centering
-\includegraphics[width=\linewidth]{fig_biophysical_local_speed_triptych.png}
-\end{minipage}
-\caption{Effect of orientation-aware transport on propagation speed and local-speed structure in the calibrated reduced potassium-buffer model. Left, tensor-minus-scalar virtual-electrode speed difference ($\Delta v_{\mathrm{tensor-scalar}}$, mm/min) for matched flat and Gaussian families across sulcus width and attenuation factor; positive values indicate faster propagation in the tensor model. Right, local-speed maps for the representative case $w=4.0$ mm and $g_{\mathrm{sulcus}}=0.75$ in the control, scalar-flat, and tensor-flat models. White contours indicate the sulcal boundary.}
-\label{fig:anisotropy_gain}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{fig_biophysical_sulcus_speed_heatmaps.png}
-\caption{Median local propagation speed within the sulcal compartment in the calibrated reduced potassium-buffer model. Heatmaps show the median of $v_{\mathrm{local}}(x,y)=60/\|\nabla T(x,y)\|$ computed within the sulcal mask for each model family. Within each panel, the x-axis is attenuation factor ($g_{\mathrm{sulcus}}=0.95$, 0.85, 0.75) and the y-axis is sulcus width ($w=2.5$, 4.0, 5.5 mm). Tensor families retain higher sulcal median speeds than matched scalar families throughout the explored grid.}
-\label{fig:sulcus_speed}
-\end{figure}
-
-\subsection{Microstructure-constrained biophysical validation}
-
-The reduced biophysical validation sweep strengthens that interpretation under a conservative tensor constraint. Across 72 candidate parameterizations of the potassium-buffer model, 63 satisfied all five qualitative acceptance criteria. The best accepted candidate used release rate 0.160, clearance rate 0.040, potassium threshold 9.0, and arrival threshold 12.0. In that representative validation case, the scalar formulation propagated at 2.607~mm/min, whereas the matched microstructure-constrained tensor formulation propagated at 2.684~mm/min, yielding a tensor-minus-scalar gain of 0.077~mm/min. Sulcal local speed increased from 2.543 to 2.587~mm/min in the tensor formulation, and the scalar downstream delay remained strongly positive at 16.2~s. Across all accepted candidates, the tensor-minus-scalar gain averaged $0.071 \pm 0.010$~mm/min (mean $\pm$ SD; range 0.042--0.077~mm/min), indicating that the ordering survives moderate biophysical parameter variation rather than depending on a single tuned setting.
-
-All 63 accepted candidates passed all three published CSD speed-band criteria. Against the broadest band (2.0--5.0~mm/min), 63/63 scalar and 63/63 tensor candidates were within range. Against the human malignant-stroke band (1.7--9.2~mm/min), 63/63 were within range. Critically, all 63/63 also passed the narrower and more discriminating empirical band of 2.5--4.5~mm/min derived from controlled recordings with known electrode geometry \citep{Ayata2015,Dreier2017}. This narrower criterion reduces the risk of the speed check being trivially satisfied by any wave-propagating model.
-
-A second observable -- scalar downstream delay -- provides an independent comparison point. Delays across accepted candidates ranged from 0.0 to 16.2~s (mean $12.8 \pm 5.4$~s). The inter-electrode arrival-time range of 10--30~s reported by the COSBID group for 3--5~mm electrode separations in human neocortex \citep{Dreier2017} was matched by 54 of 63 accepted candidates (86\%). Nine candidates showed delays below 10~s, corresponding to weaker-kinetics parameterizations at the boundary of the accepted set. These checks are summarized in Table~\ref{tab:physiology_anchor} and Fig.~\ref{fig:physiology_anchor}.
-
 
 \begin{table}[t]
 \centering
-\caption{Physiological anchoring of accepted microstructure-constrained validation candidates. Speed columns give the range across 63 accepted candidates. Coverage counts show how many candidates fell within each published propagation band. The three bands are tested in order of increasing stringency: the broad experimental band (2.0--5.0~mm/min), the human malignant-stroke band (1.7--9.2~mm/min), and a narrower empirical band (2.5--4.5~mm/min) from controlled recordings with known electrode geometry \citep{Ayata2015,Dreier2017}. The bottom row compares scalar downstream delays against the COSBID inter-electrode delay range of 10--30~s \citep{Dreier2017}.}
-\label{tab:physiology_anchor}
-\input{../outputs/physiology_anchor/physiology_anchor_table.tex}
+\caption{Summary statistics for the paired folded-geometry sweep.}
+\label{tab:stats}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Statistic & Value \\
+\midrule
+Folded geometries slower with dipole alignment & 12/12 \\
+Mean speed slowdown & 0.243~mm/min \\
+95\% CI for mean speed slowdown & 0.208--0.276~mm/min \\
+Mean relative speed reduction & 9.08\% \\
+Mean delay increase & 13.46~s \\
+95\% CI for mean delay increase & 12.25--14.65~s \\
+Mean deep-edge speed slowdown & 8.05~mm/min \\
+Wilcoxon $p$ for speed decrease & $2.44\times 10^{-4}$ \\
+Wilcoxon $p$ for delay increase & $2.44\times 10^{-4}$ \\
+Wilcoxon $p$ for deep-edge slowdown & $2.44\times 10^{-3}$ \\
+Spearman $\rho$ (fold depth vs slowdown) & 0.95 \\
+Spearman $p$ (fold depth vs slowdown) & $2.25\times 10^{-6}$ \\
+Spearman $\rho$ (depth/$\sigma$ vs slowdown) & 0.61 \\
+Spearman $p$ (depth/$\sigma$ vs slowdown) & $3.58\times 10^{-2}$ \\
+Flat-control slowdown & 0.000~mm/min \\
+\bottomrule
+\end{tabular}
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{fig_physiology_anchor.png}
-\caption{Three-panel physiological anchor for accepted microstructure-constrained validation candidates. Left, accepted control, scalar, and tensor speeds overlaid on three published CSD propagation bands (gray: human malignant stroke 1.7--9.2~mm/min; blue: general experimental 2.0--5.0~mm/min; orange: narrow controlled recordings 2.5--4.5~mm/min). Middle, tensor-minus-scalar gains for all 63 accepted candidates; all are positive. Right, scalar downstream delays ranked across accepted candidates; the orange band marks the COSBID inter-electrode delay range of 10--30~s \citep{Dreier2017}; 54/63 candidates (86\%) fall within this range.}
-\label{fig:physiology_anchor}
-\end{figure}
+The size of the effect increased strongly with fold depth and more moderately with fold severity. This is the pattern expected if the sulcus acts as a geometry-specific electrodiffusive bottleneck: larger folds increase the alignment between the membrane-current dipole field and the path along which extracellular drift must act to impede cross-sulcus propagation.
+
+\subsection{The vascular extension is informative but not the primary evidence}
+
+Turning on the exploratory vascular extension changed the representative cross-fold speed to 2.913~mm/min while simultaneously lowering oxygen to 0.20 and perfusion to 0.25 in the most affected vertices. Local edge speeds were reduced, but the global cross-fold arrival metric accelerated because the altered oxygen-dependent thresholds and pump modulation changed overall excitability. This is precisely why the vascularly coupled run is not the primary test of the dipole hypothesis: it introduces an additional physiological regime change instead of isolating the dipole term within the same ionic transport model. We therefore treat it as a sensitivity analysis showing that neurovascular coupling can interact strongly with the geometry effect, not as contradictory evidence against sulcal dipole slowing.
 
 \section{Discussion}
 
-The present simulations show that sulcal slowing is robust to model class but not to model structure in magnitude. In the Barkley base model, wavefront arrival was delayed within the sulcal region relative to the calibrated control without loss of wavefront continuity (Fig.~\ref{fig:wavefront}). In the calibrated reduced biophysical grid, transport made orientation-aware again reduced the delay systematically relative to matched scalar models, with all 18 matched pairs across the sensitivity grid showing positive anisotropy gain ($p=0.0020$, Wilcoxon signed-rank; Fig.~\ref{fig:delta_speed}). The main result is therefore comparative: sulcal slowing persists after directional structure is introduced, but isotropic attenuation exaggerates the size of the effect.
+The main result of this study is mechanistic rather than merely phenomenological. Within a multi-ion surface electrodiffusion model in which extracellular diffusion remains the backbone of propagation, sulcal dipole alignment produced a consistent, statistically significant slowing effect that was absent on a flat control and became stronger in deeper folds. That finding advances the project beyond earlier scalar and tensor comparison papers because it no longer depends on a prescribed attenuation field alone. Instead, the slowing arises from the interaction between geometry, membrane-current orientation, quasi-static extracellular potential, and explicit ionic drift.
 
-This interpretation is consistent with a broader geometrical principle from cortical forward modeling. In EEG/MEG simulations, local folding geometry and dipole orientation strongly shape mesoscale observables, including enhancement and cancellation profiles across sulcal banks and gyral crowns \citep{Ahlfors2010a,Ahlfors2010b,Irimia2012,Muller2023,Reimann2022}. Those studies concern observability rather than propagation, and they do not predict CSD speed directly. They nevertheless show that sulci are not well represented as geometry-neutral compartments. The present work extends that principle to transport: when the diffusion operator preserves easier along-sulcus propagation than cross-sulcus spread, the predicted delay remains but is weaker than in isotropic scalar models. The same moderation survives in the calibrated potassium-buffer grid and in the microstructure-constrained validation sweep, showing that the scalar--tensor ordering is not peculiar to one kinetics choice or one fixed tensor parameterization.
+The result is also well aligned with the broader CSD modeling literature. Classic and modern ionic models place extracellular K$^+$ transport, membrane fluxes, and ECS geometry at the center of the problem \citep{Tuckwell1978,Wei2014,Zandt2015}. Our model follows that logic directly by making extracellular diffusion and dynamic ECS restriction central, then adding the electrical component as a quasi-static electrodiffusive correction. In that sense, the study supports a restrained mechanistic claim: the relevant electromagnetic ingredient for CSD propagation is not wave-like radiation but the geometry-dependent extracellular potential generated by ionic charge separation and membrane currents.
 
-The sensitivity analysis of the tangential attenuation ratio $\eta$ (Fig.~\ref{fig:eta_sweep}) demonstrates that the scalar--tensor ordering is not an artifact of a specific parameter choice in the Barkley base model. The tensor model was faster than the matched scalar model for every $\eta < 1$, with the gain decreasing monotonically from 0.171~mm/min at $\eta=0$ to 0 at $\eta=1$. The biophysical validation sweep extends that conclusion: 63 of 72 microstructure-constrained potassium-buffer candidates satisfied all qualitative criteria, and all accepted candidates retained a positive tensor-minus-scalar gain. Together, these analyses show that isotropic attenuation overestimates sulcal delay across both parametric and kinetic refinements.
+The geometry specificity of the result is important. The flat control did not slow at all when the dipole term was enabled, whereas every folded geometry slowed. That makes a purely numerical explanation unlikely and instead points back to the hypothesis that sulci differ from gyri because the alignment of local dipoles and the geometry of the extracellular path are intrinsically different across those structures. The strong correlation between slowing and fold depth reinforces that interpretation.
 
-The additional speed-range and delay checks are intentionally modest but important. They operate at three distinct levels of precision: (i) a broad speed-range check against general CSD propagation bands (2.0--5.0 and 1.7--9.2~mm/min), which accepted candidates trivially satisfy; (ii) a narrower consistency check against a more discriminating empirical band (2.5--4.5~mm/min) from controlled recordings, which all 63 accepted candidates also satisfy; and (iii) a delay-range comparison against published inter-electrode arrival-time differences of 10--30~s for 3--5~mm tissue separations in human patients \citep{Dreier2017}, which 54/63 accepted candidates (86\%) match. The delay comparison engages a physically distinct observable --- arrival time difference rather than wave speed --- and tests a consequence of the model that is directly analogous to what clinical electrode arrays measure. Together, these three checks show that the conservatively parameterized scalar and tensor cases occupy a documented CSD propagation regime in both speed and timing, while preserving the same tensor-faster-than-scalar ordering. None of these checks validates the transport operator uniquely or substitutes for full ionic model benchmarking with waveform-level data.
+The study also shows why vascular coupling must be handled carefully. The optional perfusion--oxygen extension did not merely add a small correction to the dipole result; it changed the overall excitability regime. That behavior is biologically plausible, but it also means that the vascular subsystem should be treated as a second-stage sensitivity analysis rather than folded into the primary claim. For a mechanistic paper centered on sulcal dipole alignment, the clean evidence is the paired comparison between the same ionic model with and without dipole alignment.
 
-A notable secondary finding is the strong upstream--downstream asymmetry of sulcal delay. The wavefront entered the sulcal region with only modest delay (upstream median $\leq 1.3$~s across all conditions), but accumulated a large arrival-time deficit that persisted well past the sulcal boundary (downstream median up to 23.4~s in the strongest case). This bottleneck behavior suggests that sulcal slowing may have more complex spatial consequences than a simple speed reduction confined to the sulcal compartment.
+Several limitations define the scope of the present submission. First, the geometry is synthetic rather than subject-specific, so the current manuscript does not yet test dipole-induced slowing on reconstructed human cortical surfaces. Second, the electrical model is quasi-static and charge-aware, but it is still a reduced surface formulation rather than a full multidomain electrodiffusion model with explicit neuronal and glial compartments. Third, we benchmarked propagation speed and arrival-time delay, but we did not fit extracellular waveforms or direct-current shifts against experimental recordings. Fourth, the swelling state approached its model-imposed upper bound in several runs, indicating that future versions should include a more constrained volume regulation law. These limitations argue for the next steps rather than against the present conclusion: subject-specific surface bundles, waveform-level validation, and a higher-fidelity multidomain formulation would all strengthen the causal interpretation further.
 
-The manuscript therefore supports a constrained conclusion. A localized scalar reduction is sufficient to generate sulcal slowing in both a minimal excitable-medium model and a reduced potassium-buffer model, but it should not be interpreted as a uniquely identified physiological mechanism. Across the parameter grids and validation candidates explored here, scalar models behave as upper-bound slowing models relative to tensor models with the same spatial attenuation envelope. This point matters because estimates of delay obtained from scalar coupling alone may attribute too much of the effect to local weakening and too little to directional structure.
-
-Several limitations define the scope of the result. First, Barkley kinetics provide a minimal excitable-medium description and do not resolve ion concentration dynamics, glial buffering, vascular interactions, or laminar microstructure. Second, the tangential-to-normal attenuation ratio in the tensor family was prescribed rather than derived from tissue measurements, although the $\eta$ sensitivity analysis shows that the scalar--tensor ordering persists for all $\eta < 1$. Third, the model is two-dimensional and therefore abstracts away three-dimensional cortical geometry and curvature-dependent thickness effects. Fourth, the physiological anchoring presented here rests on speed-range and delay-range consistency rather than waveform-level benchmarking; the downstream delay of the nine boundary-kinetics candidates fell below the 10~s COSBID range floor, suggesting those cases underestimate kinetic strength relative to the most-constrained human measurements. For that reason, the present claim is not that the tensor model is fully biophysical, but that it is a stricter and externally anchored test of whether sulcal slowing survives when orientation structure is represented explicitly. A direct next step is to test whether this ordering is preserved in a more biophysical ionic model of spreading depolarization \citep{Wei2014,Zandt2015}.
+Within those limits, the manuscript supports a stronger claim than the earlier tensor study. Sulcal dipole alignment is not merely compatible with CSD slowing; in a mechanistic surface electrodiffusion model it adds a significant, geometry-specific slowing term on top of extracellular diffusion, and that term scales with fold depth. That makes the current model suitable as a mechanistic hypothesis paper and a more credible basis for future patient-specific or experimentally benchmarked work.
 
 \section*{Code availability}
-The simulation code, analysis pipeline, and supplementary-analysis scripts are publicly available at \url{https://github.com/squareshorts/csd-sulcus-model} and archived on Zenodo at \url{https://doi.org/10.5281/zenodo.19410880}. The main study is implemented in \texttt{scripts/run\_extended\_study.py}, supplementary analyses in \texttt{scripts/run\_supplementary\_analyses.py}, biophysical grid and validation runs in \texttt{scripts/run\_biophysical\_grid.py} and \texttt{scripts/run\_biophysical\_validation.py}, the physiology-anchor summary in \texttt{scripts/run\_physiology\_anchor.py}, and reusable model code under \texttt{src/csd\_sulcus/}.
+The simulation code, analysis pipeline, and manuscript assets are publicly available at \url{https://github.com/squareshorts/csd-sulcus-model} and archived on Zenodo at \url{https://doi.org/10.5281/zenodo.19410880}. The mechanistic surface study reported here is implemented in \texttt{scripts/run\_surface\_mechanistic\_study.py}, with reusable model code in \texttt{src/csd\_sulcus/surface\_mechanistic.py}.
 
 \section*{Data availability}
-The code and processed outputs used to generate the reported figures and table are publicly available at \url{https://github.com/squareshorts/csd-sulcus-model} and archived on Zenodo at \url{https://doi.org/10.5281/zenodo.19410880}.
+The processed outputs used to generate the mechanistic figures and tables are included in the repository under \texttt{outputs/surface\_mechanistic\_study/}. Manuscript-local copies of the figures are stored in \texttt{manuscript/figures/}.
 
 \section*{Funding}
 This work was financially supported by the Conselho Nacional de Desenvolvimento Cient\'ifico e Tecnol\'ogico (CNPq) under Grant No.~309589/2023-1 to A.P., and by the Coordena\c{c}\~ao de Aperfei\c{c}oamento de Pessoal de N\'ivel Superior (CAPES).

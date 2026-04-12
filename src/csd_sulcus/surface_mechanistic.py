@@ -6,7 +6,6 @@ from typing import Sequence
 import numpy as np
 from scipy import sparse
 from scipy.sparse import csgraph, linalg as spla
-from scipy.spatial import cKDTree
 
 from .surface_io import SurfaceMesh
 from .surface_model import build_surface_fields, edge_speed_stats, median_arrival
@@ -46,7 +45,8 @@ class MechanisticSurfaceParams:
     potassium_diffusivity_scale: float = 1.00
     sodium_diffusivity_scale: float = 0.82
     chloride_diffusivity_scale: float = 1.08
-    electrodiffusion_gain: float = 0.10
+    field_reference_mV: float = 5.0
+    electrodiffusion_mobility_fraction: float = 0.50
 
     k_e_rest: float = 3.5
     k_i_rest: float = 140.0
@@ -80,11 +80,11 @@ class MechanisticSurfaceParams:
     activation_voltage_slope_mv: float = 6.5
     arrival_voltage_threshold_mv: float = -28.0
 
-    charge_potential_gain: float = 0.42
-    dipole_potential_gain: float = 0.85
+    charge_field_gain_per_mM: float = 0.084
+    dipole_field_gain: float = 1.50
     potential_screening: float = 0.65
-    dipole_softening_mm: float = 0.75
-    dipole_interaction_radius_mm: float = 6.0
+    dipole_screening_length_mm: float = 4.0
+    dipole_cutoff_mm: float = 12.0
 
     stim_radius_mm: float = 1.2
     stimulus_k_e: float = 22.0
@@ -289,9 +289,10 @@ def _ion_transport_rhs(
     rhs = _edge_flux_divergence(operators, diffusive_flux)
     concentration_edge = 0.5 * (concentration[operators.edge_i] + concentration[operators.edge_j])
     potential_drop = electric_potential[operators.edge_i] - electric_potential[operators.edge_j]
+    beta_ed = params.electrodiffusion_mobility_fraction * params.field_reference_mV / THERMAL_VOLTAGE_MV
     drift_flux = (
         operators.base_edge_weights
-        * params.electrodiffusion_gain
+        * beta_ed
         * float(valence)
         * edge_conductivity
         * concentration_edge
@@ -301,30 +302,37 @@ def _ion_transport_rhs(
 
 
 def _build_dipole_interaction_matrix(
-    mesh: SurfaceMesh,
-    vertex_normals: np.ndarray,
+    operators: SurfaceOperators,
     params: MechanisticSurfaceParams,
 ) -> sparse.csr_matrix:
-    n_vertices = mesh.n_vertices
+    n_vertices = int(operators.lumped_mass.shape[0])
     if not params.enable_dipole_alignment:
         return sparse.csr_matrix((n_vertices, n_vertices), dtype=float)
 
-    radius = max(float(params.dipole_interaction_radius_mm), float(params.dipole_softening_mm))
-    softening_sq = max(float(params.dipole_softening_mm), 1e-3) ** 2
-    tree = cKDTree(np.asarray(mesh.vertices, dtype=float))
-    neighbours = tree.query_ball_point(mesh.vertices, r=radius)
+    screening_length = max(float(params.dipole_screening_length_mm), 1e-6)
+    cutoff = max(float(params.dipole_cutoff_mm), screening_length)
+    vertex_normals = np.asarray(operators.vertex_normals, dtype=float)
 
     rows: list[int] = []
     cols: list[int] = []
     data: list[float] = []
-    for i, js in enumerate(neighbours):
-        edge_js = np.asarray(js, dtype=int)
-        edge_js = edge_js[edge_js != i]
+    for i in range(n_vertices):
+        distances = np.asarray(
+            csgraph.dijkstra(operators.graph, directed=False, indices=i, limit=cutoff),
+            dtype=float,
+        )
+        edge_js = np.where(np.isfinite(distances))[0]
+        edge_js = edge_js[(edge_js != i) & (distances[edge_js] > 0.0)]
         if edge_js.size == 0:
             continue
-        displacement = mesh.vertices[i][None, :] - mesh.vertices[edge_js]
-        dist_sq = np.sum(displacement * displacement, axis=1) + softening_sq
-        kernel = np.sum(displacement * vertex_normals[edge_js], axis=1) / np.power(dist_sq, 1.5)
+        normal_opposition = 0.5 * (1.0 - np.sum(vertex_normals[i][None, :] * vertex_normals[edge_js], axis=1))
+        kernel = np.exp(-distances[edge_js] / screening_length) * np.clip(normal_opposition, 0.0, 1.0)
+        keep = kernel > 1e-8
+        edge_js = edge_js[keep]
+        kernel = kernel[keep]
+        if kernel.size == 0:
+            continue
+        kernel = kernel / np.sum(kernel)
         rows.extend([i] * int(edge_js.size))
         cols.extend(edge_js.tolist())
         data.extend(kernel.tolist())
@@ -362,7 +370,7 @@ def _electric_potential(
         else np.zeros_like(charge_density)
     )
     rhs = phi_operators.lumped_mass * (
-        params.charge_potential_gain * charge_density - params.dipole_potential_gain * dipole_drive
+        params.charge_field_gain_per_mM * charge_density - params.dipole_field_gain * dipole_drive
     )
     phi = np.asarray(phi_solver(rhs), dtype=float).reshape(-1)
     phi -= float(np.average(phi, weights=phi_operators.lumped_mass))
@@ -478,7 +486,7 @@ def run_mechanistic_surface_simulation(
     operators = build_surface_operators(mesh, d_parallel=d_parallel_base, d_perp=d_perp_base)
     dt_used = float(params.dt) if params.dt is not None else _auto_dt(operators, params)
     phi_operators, phi_solver = _build_potential_solver(mesh, d_parallel_base, d_perp_base, params)
-    dipole_interaction = _build_dipole_interaction_matrix(mesh, operators.vertex_normals, params)
+    dipole_interaction = _build_dipole_interaction_matrix(operators, params)
 
     n_vertices = mesh.n_vertices
     steps = int(round(params.final_t_end / dt_used))

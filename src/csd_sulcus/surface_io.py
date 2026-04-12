@@ -110,9 +110,9 @@ def _load_gifti_mesh(path: Path) -> tuple[np.ndarray, np.ndarray]:
     triangles = None
     for darray in image.darrays:
         intent = getattr(darray, 'intent', '')
-        if intent == 'NIFTI_INTENT_POINTSET':
+        if intent in {'NIFTI_INTENT_POINTSET', 1008}:
             pointset = np.asarray(darray.data, dtype=float)
-        elif intent == 'NIFTI_INTENT_TRIANGLE':
+        elif intent in {'NIFTI_INTENT_TRIANGLE', 1009}:
             triangles = np.asarray(darray.data, dtype=int)
     if pointset is None or triangles is None:
         raise ValueError(f'GIFTI file {path} must contain POINTSET and TRIANGLE arrays.')
@@ -128,7 +128,7 @@ def _load_scalar_field(path: Path, n_vertices: int) -> np.ndarray:
             if len(data.files) != 1:
                 raise ValueError(f'Field file {path} must contain exactly one array.')
             field = np.asarray(data[data.files[0]])
-    elif suffix in {'.gii', '.shape.gii'} or path.name.endswith('.shape.gii'):
+    elif suffix in {'.gii', '.gz'} or path.name.endswith(('.shape.gii', '.shape.gii.gz', '.gii.gz')):
         try:
             import nibabel as nib
         except ImportError as exc:  # pragma: no cover - depends on optional local install
@@ -221,7 +221,7 @@ def load_surface_mesh(
         vertices, faces, embedded_fields = _load_npz_mesh(path)
     elif suffix == '.obj':
         vertices, faces = _load_obj_mesh(path)
-    elif suffix == '.gii' or path.name.endswith('.surf.gii'):
+    elif suffix in {'.gii', '.gz'} and path.name.endswith(('.surf.gii', '.surf.gii.gz', '.gii.gz')):
         vertices, faces = _load_gifti_mesh(path)
     else:
         raise ValueError(f'Unsupported mesh format for {path}. Use NPZ, OBJ, or GIFTI.')

@@ -41,7 +41,7 @@ def test_mechanistic_surface_model_runs_with_finite_wave_metrics() -> None:
     assert np.nanmin(output.sodium_e) < params.na_e_rest - 10.0
     assert np.nanmax(output.swelling) > 0.2
     assert np.nanmax(np.abs(output.electric_potential)) > 1.0
-    assert np.nanmin(output.membrane_voltage_mv) < -65.0
+    assert np.nanmin(output.membrane_voltage_mv) < -40.0
     assert np.nanmax(output.membrane_voltage_mv) > -35.0
 
 

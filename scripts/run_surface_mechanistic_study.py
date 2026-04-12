@@ -274,7 +274,6 @@ def _save_geometry_figure(rows: list[dict], output_path: Path) -> None:
         )
     axes[0].set_xticks([0, 1], ['No dipole', 'Sulcal dipole'])
     axes[0].set_ylabel('Cross-fold speed (mm/min)')
-    axes[0].set_title('Folded geometries')
     axes[0].grid(alpha=0.25)
 
     scatter = axes[1].scatter(severity, slowdown, c=depths, cmap=cmap, s=52, edgecolor='black', linewidth=0.4)
@@ -295,7 +294,6 @@ def _save_geometry_figure(rows: list[dict], output_path: Path) -> None:
     axes[1].axhline(0.0, color='black', linewidth=0.8, alpha=0.45)
     axes[1].set_xlabel('Fold severity (depth / sigma)')
     axes[1].set_ylabel('Dipole-induced slowing (mm/min)')
-    axes[1].set_title('Stronger folds slow more')
     axes[1].grid(alpha=0.25)
     axes[1].legend(loc='upper left', frameon=False)
 
@@ -318,19 +316,16 @@ def _save_representative_figure(rows: list[dict], output_path: Path) -> None:
     axes[0].bar(x, speed, color=colors, edgecolor='black', linewidth=0.5)
     axes[0].set_xticks(x, labels, rotation=15)
     axes[0].set_ylabel('Cross-fold speed (mm/min)')
-    axes[0].set_title('Representative speed')
     axes[0].grid(axis='y', alpha=0.25)
 
     axes[1].bar(x, delay, color=colors, edgecolor='black', linewidth=0.5)
     axes[1].set_xticks(x, labels, rotation=15)
     axes[1].set_ylabel('E1-E2 delay (s)')
-    axes[1].set_title('Representative delay')
     axes[1].grid(axis='y', alpha=0.25)
 
     axes[2].bar(x, potential, color=colors, edgecolor='black', linewidth=0.5)
     axes[2].set_xticks(x, labels, rotation=15)
     axes[2].set_ylabel('Max absolute potential (mV)')
-    axes[2].set_title('Extracellular field amplitude')
     axes[2].grid(axis='y', alpha=0.25)
 
     fig.savefig(output_path, dpi=180)
@@ -477,7 +472,6 @@ def _save_propagation_figure(output_path: Path) -> dict[str, object]:
         cax.axhline(path_distance[-1], color='white', linestyle=':', linewidth=0.8, alpha=0.6)
         fig.colorbar(image, ax=cax, fraction=0.046, pad=0.02, label='Extracellular K+ (mM)')
 
-    fig.suptitle('Mechanistic wave propagation on the representative folded surface', fontsize=14)
     fig.savefig(output_path, dpi=180)
     plt.close(fig)
 

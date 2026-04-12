@@ -13,7 +13,7 @@
 \graphicspath{{figures/}}
 
 \newcommand{\ShortTitle}{Sulcal dipole slowing in mechanistic CSD}
-\newcommand{\TOCSummary}{A multi-ion surface electrodiffusion model predicts that sulcal dipole alignment adds a significant, fold-dependent slowing term on top of extracellular diffusion.}
+\newcommand{\TOCSummary}{A multi-ion surface electrodiffusion model predicts that sulcal dipole alignment adds a significant, geometry-specific slowing term on top of extracellular diffusion.}
 
 \title{Sulcal dipole alignment slows cortical spreading depolarization in a mechanistic surface electrodiffusion model}
 
@@ -38,7 +38,7 @@ Rubem Guedes\\
 \end{center}
 
 \begin{abstract}
-Cortical spreading depolarization (CSD) slows in sulci, but the mechanism of that slowing is still debated because scalar attenuation models, tensor transport models, and electrodiffusive models emphasize different aspects of cortical folding. We asked whether sulcal dipole alignment can impose a measurable additional delay in a mechanistic surface model that keeps extracellular diffusion central while representing ionic drift and membrane charge separation explicitly. We implemented a folded-surface electrodiffusion model with overlapping extracellular and intracellular compartments, explicit extracellular and intracellular K$^+$, Na$^+$, and Cl$^-$ concentrations, Goldman--Hodgkin--Katz membrane voltage, leak and activation-dependent membrane currents, Na/K pump dynamics, dynamic extracellular-space volume fraction and tortuosity, and a quasi-static dipole-driven extracellular potential field aligned to local surface normals. We then compared the same mechanistic model with dipole alignment disabled or enabled across one representative folded surface and a paired geometry sweep spanning 12 folded surfaces plus a flat control. In the representative folded case, cross-fold propagation slowed from 2.488 to 2.106~mm/min when the dipole term was enabled, while cross-fold delay increased from 134.4 to 159.2~s. Across the full sweep, all 12 folded geometries slowed with dipole alignment, whereas the flat control was unchanged. The mean dipole-induced slowdown was 0.243~mm/min (95\% bootstrap confidence interval 0.208--0.276~mm/min), corresponding to a 9.08\% reduction in speed and a mean delay increase of 13.46~s (95\% confidence interval 12.25--14.65~s). Paired Wilcoxon signed-rank tests were significant for cross-fold speed ($p=2.44\times 10^{-4}$), cross-fold delay ($p=2.44\times 10^{-4}$), and deep-edge local speed ($p=2.44\times 10^{-3}$). Slowdown increased strongly with fold depth (Spearman $\rho=0.95$, $p=2.25\times 10^{-6}$). These results support a mechanistic interpretation in which extracellular diffusion remains the backbone of propagation, but sulcal dipole alignment adds a significant, geometry-specific electrodiffusive slowing term that is absent on a flat surface.
+Cortical spreading depolarization (CSD) slows in sulci, but the mechanism of that slowing is still debated because scalar attenuation models, tensor transport models, and electrodiffusive models emphasize different aspects of cortical folding. We asked whether sulcal dipole alignment can impose a measurable additional delay in a mechanistic surface model that keeps extracellular diffusion central while representing ionic drift and membrane charge separation explicitly. We implemented a folded-surface electrodiffusion model with overlapping extracellular and intracellular compartments, explicit extracellular and intracellular K$^+$, Na$^+$, and Cl$^-$ concentrations, Goldman--Hodgkin--Katz membrane voltage, leak and activation-dependent membrane currents, Na/K pump dynamics, dynamic extracellular-space volume fraction and tortuosity, and a quasi-static extracellular field constrained by a fixed 5~mV reference scale. The dipole contribution was represented by a screened geometry kernel built from geodesic distance and surface-normal opposition rather than by an ad hoc local operator. We then compared the same mechanistic model with dipole alignment disabled or enabled across one representative folded surface, a paired geometry sweep spanning 12 folded surfaces plus a flat control, and one atlas-based sulcal-versus-flatter patch sanity check on the left fsaverage6 hemisphere. In the representative folded case, cross-fold propagation slowed from 2.558 to 2.476~mm/min when the dipole term was enabled, while cross-fold delay increased from 130.5 to 134.7~s. Across the folded-geometry sweep, all 12 folded geometries slowed with dipole alignment, whereas the flat control was unchanged. The mean dipole-induced slowdown was 0.127~mm/min (95\% bootstrap confidence interval 0.104--0.154~mm/min), corresponding to a 4.65\% reduction in speed and a mean delay increase of 6.99~s (95\% confidence interval 5.58--8.48~s). Paired Wilcoxon signed-rank tests were significant for speed and delay ($p=2.44\times 10^{-4}$ for both). In the atlas sanity check, the stimulus-to-downstream slowdown was larger on the sulcal patch than on the flatter matched patch (0.270 vs.~0.069~mm/min). These results support a mechanistic interpretation in which extracellular diffusion remains the backbone of propagation, while sulcal dipole alignment adds a measurable, geometry-specific electrodiffusive slowing term that survives beyond the synthetic strip.
 \end{abstract}
 
 \noindent \textbf{Keywords:} cortical spreading depolarization, electrodiffusion, sulcus, extracellular diffusion, dipole alignment, cortical folding, surface model
@@ -59,15 +59,19 @@ We used a triangulated folded-strip surface to isolate sulcal geometry while kee
 
 Propagation was initiated by a focal stimulus placed on one sulcal bank. Arrival time was then measured at two automatically selected electrode regions on opposite banks. The primary readout was the cross-fold propagation speed inferred from the geodesic distance between the electrode regions and the difference between their median arrival times. This metric is directly analogous to the inter-electrode timing readouts reported in invasive CSD studies \citep{Dreier2017}.
 
+\subsection{Atlas-based sulcal versus flatter patch sanity check}
+
+To test whether the sign of the effect survives beyond the synthetic strip without attempting full human validation, we added one atlas-based sanity check. We used the public fsaverage6 left-hemisphere surfaces distributed by Nilearn, derived a midthickness surface by averaging the white and pial meshes, and carried over the corresponding sulcal-depth map. On that atlas midthickness mesh we selected one deep sulcal center and one flatter center separated geodesically by at least 30~mm, then grew equal-radius geodesic patches of 12~mm. Within each extracted patch we kept the same mechanistic solver, placed a focal stimulus reproducibly near one end of the dominant patch axis, and defined the downstream virtual electrode geodesically along the resulting patch traversal path. The atlas check was analyzed only as a sign-and-specificity sanity test; it was not intended as subject-specific validation.
+
 \subsection{Mechanistic surface electrodiffusion model}
 
 The surface model evolves explicit extracellular and intracellular concentrations of K$^+$, Na$^+$, and Cl$^-$ on overlapping surface compartments. For each ionic species $s \in \{\mathrm{K},\mathrm{Na},\mathrm{Cl}\}$, the extracellular concentration $c_s^{e}$ obeys
 \begin{equation}
 \frac{\partial c_s^{e}}{\partial t}
-= \nabla_{\Gamma}\cdot\left[D_s(\alpha,\lambda)\left(\nabla_{\Gamma} c_s^{e} + z_s \beta_{\mathrm{ed}} c_s^{e}\nabla_{\Gamma}\phi\right)\right]
- \frac{J_s^{m}}{\alpha},
+= \nabla_{\Gamma}\cdot\left[D_s(\alpha,\lambda)\left(\nabla_{\Gamma} c_s^{e} + z_s \beta_{\mathrm{ed}} c_s^{e}\nabla_{\Gamma}\hat{\phi}\right)\right]
+- \frac{J_s^{m}}{\alpha},
 \end{equation}
-where $\Gamma$ is the cortical surface, $\alpha$ is local ECS volume fraction, $\lambda$ is tortuosity, $z_s$ is ion valence, $D_s$ is the effective surface diffusivity, $\beta_{\mathrm{ed}}$ is the electrodiffusion gain, and $J_s^{m}$ is the membrane source term. The intracellular compartment is updated by mass conservation,
+where $\Gamma$ is the cortical surface, $\alpha$ is local ECS volume fraction, $\lambda$ is tortuosity, $z_s$ is ion valence, $D_s$ is the effective surface diffusivity, and $J_s^{m}$ is the membrane source term. The field term was nondimensionalized with $\hat{\phi}=V_e/V_0$, fixed reference scale $V_0=5$~mV, and electrodiffusion prefactor $\beta_{\mathrm{ed}} = m_{\mathrm{ed}} F V_0 /(RT)$ with mobility fraction $m_{\mathrm{ed}}=0.5$. The intracellular compartment is updated by mass conservation,
 \begin{equation}
 \frac{\partial c_s^{i}}{\partial t} = -\frac{J_s^{m}}{1-\alpha}.
 \end{equation}
@@ -83,12 +87,18 @@ The extracellular electrical field was treated quasi-statically. Charge-density 
 \begin{equation}
 \rho_e = (c_{\mathrm{K}}^{e}-c_{\mathrm{K},0}^{e}) + (c_{\mathrm{Na}}^{e}-c_{\mathrm{Na},0}^{e}) - (c_{\mathrm{Cl}}^{e}-c_{\mathrm{Cl},0}^{e}),
 \end{equation}
-and the potential field $\phi$ was obtained from a screened surface equation,
+and the dimensionless potential field $\hat{\phi}$ was obtained from a screened surface equation,
 \begin{equation}
--\nabla_{\Gamma}\cdot(\sigma_{\phi}\nabla_{\Gamma}\phi) + \kappa \phi
+-\nabla_{\Gamma}\cdot(\sigma_{\phi}\nabla_{\Gamma}\hat{\phi}) + \kappa \hat{\phi}
 = \gamma_{\rho}\rho_e - \gamma_{d}\mathcal{K}_{d}[I_m],
 \end{equation}
-where $\sigma_{\phi}$ is a conductivity-like surface operator, $\kappa$ is a screening term, $I_m$ is the deviation of the net membrane current from rest, and $\mathcal{K}_{d}$ is a dipole-interaction operator constructed from the local surface normals. This term represents the hypothesis that the relative orientation of membrane-current dipoles and sulcal geometry contributes to extracellular drift. It is therefore not a full Maxwell-wave model; instead, it is a quasi-static electrodiffusive correction layered onto extracellular diffusion.
+where $\sigma_{\phi}$ is a conductivity-like surface operator, $\kappa$ is a screening term, and $I_m$ is the deviation of the net membrane current from rest. The dipole term was not implemented as a custom Euclidean attenuation rule. Instead, $\mathcal{K}_{d}$ was a screened geometry kernel on the mesh graph,
+\begin{equation}
+\mathcal{K}_{d}[I_m](i) = \sum_{j\neq i} w_{ij} I_m(j),
+\qquad
+w_{ij} \propto \exp\!\left[-d_g(i,j)/\ell_d\right] \frac{1-\mathbf{n}_i\cdot\mathbf{n}_j}{2},
+\end{equation}
+with geodesic distance $d_g$, vertex normals $\mathbf{n}_i$, screening length $\ell_d=4$~mm, and 12~mm cutoff. Rows were normalized so the operator represented a bounded screened average of membrane-current drive from nearby, oppositely oriented surface elements. This term therefore represents the hypothesis that the relative orientation of membrane-current dipoles and sulcal geometry contributes to extracellular drift. It is not a full Maxwell-wave model; instead, it is a quasi-static electrodiffusive correction layered onto extracellular diffusion.
 
 \subsection{Dynamic extracellular space and vascular sensitivity}
 
@@ -100,20 +110,48 @@ Increasing swelling reduced ECS volume fraction and increased tortuosity, feedin
 
 \subsection{Numerical implementation and statistics}
 
-Surface transport was discretized on the triangular mesh with lumped-mass finite elements and edge-based fluxes. Time integration used explicit Euler with an automatically chosen stable time step; in the representative run the step size was 0.04997~s. The representative folded-surface comparison ran for 220~s, and the geometry sweep ran for 210~s per case.
+Surface transport was discretized on the triangular mesh with lumped-mass finite elements and edge-based fluxes. Time integration used explicit Euler with an automatically chosen stable time step; in the representative run the step size was 0.04997~s. The representative folded-surface comparison ran for 220~s, the geometry sweep ran for 210~s per case, and the atlas patch sanity check ran for 180~s per patch.
 
-The primary mechanistic test was paired: for each geometry, we ran the same electrodiffusion model with dipole alignment disabled or enabled and compared the resulting cross-fold speed and delay. Folded geometries were analyzed with one-sided paired Wilcoxon signed-rank tests under the directional alternative that dipole alignment decreases propagation speed and increases delay. We also computed bootstrap 95\% confidence intervals for the mean speed slowdown and delay increase, and Spearman correlations between dipole-induced slowing and fold geometry.
+The primary mechanistic test was paired: for each geometry, we ran the same electrodiffusion model with dipole alignment disabled or enabled and compared the resulting cross-fold speed and delay. Folded geometries were analyzed with one-sided paired Wilcoxon signed-rank tests under the directional alternative that dipole alignment decreases propagation speed and increases delay. We also computed bootstrap 95\% confidence intervals for the mean speed slowdown and delay increase, and Spearman correlations between dipole-induced slowing and fold geometry. For the atlas sanity check, the primary readout was stimulus-to-downstream traversal speed and the associated downstream arrival-time shift, because that metric was more stable than an inner-patch two-electrode delay on the small extracted patches.
 
 \section{Results}
 
 \subsection{Representative mechanistic slowing}
 
-In the representative folded geometry, enabling sulcal dipole alignment slowed cross-fold propagation from 2.488 to 2.106~mm/min and increased the E1--E2 delay from 134.4 to 159.2~s (Table~\ref{tab:representative}; Fig.~\ref{fig:representative}). The maximum absolute extracellular potential also increased from 18.20 to 22.17 arbitrary units, consistent with a stronger field-mediated contribution in the dipole-aligned case. This was not a generic consequence of turning on more model terms: the comparison was performed within the same multi-ion mechanistic solver, with identical geometry, diffusion fields, membrane kinetics, and swelling dynamics.
+In the representative folded geometry, enabling sulcal dipole alignment slowed cross-fold
+propagation from 2.558 to 2.476~mm/min and increased the E1--E2 delay from 130.5 to
+134.7~s (Table~\ref{tab:representative}; Figs.~\ref{fig:propagation}
+and~\ref{fig:representative}). Figure~\ref{fig:representative} makes this quantification
+explicit. Panel~A shows the representative extracellular K$^+$ traces with the
+threshold-crossing markers used to define arrival times, highlighting the delayed downstream
+readout in the dipole-enabled run. Panel~B plots front arrival time along the cross-sulcal
+geodesic path and shows that the separation between the two conditions emerges across the
+sulcal segment and persists downstream. Panel~C summarizes the paired representative-run
+readouts for cross-fold speed, E1--E2 delay, and maximum absolute extracellular potential.
+Because the field term was constrained by a fixed 5~mV reference scale, the slowing occurred
+with only a modest increase in maximum absolute extracellular potential from 18.99 to
+19.50~mV. Both conditions were run within the same multi-ion mechanistic solver, with
+identical geometry, diffusion fields, membrane kinetics, and swelling dynamics. The delay is
+also visible directly in the evolving wavefront and cross-sulcal kymograph
+(Fig.~\ref{fig:propagation}). Additional quantities from this representative run, including
+arrival times, time step, and state variables, are listed in Supplementary Table~S2.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{fig_mechanistic_representative_summary.png}
-\caption{Representative mechanistic comparison on the folded surface. Bars show cross-fold propagation speed, cross-fold delay between the two electrode regions, and maximum absolute extracellular potential for the baseline mechanistic model, the same model with sulcal dipole alignment enabled, and the exploratory vascularly coupled extension. The primary mechanistic comparison is the paired baseline-versus-dipole contrast. The vascular extension is shown only as a sensitivity analysis because it changes the overall excitability regime.}
+\includegraphics[width=\textwidth]{fig_mechanistic_wave_propagation.png}
+\caption{Wave propagation on the representative folded surface. Top row, matched-time
+extracellular K$^+$ snapshots and cross-sulcal kymograph for the no-dipole model. Bottom
+row, the same visualization with sulcal dipole alignment enabled. The dipole-enabled case
+shows delayed wavefront advance along the cross-sulcal geodesic path.}
+\label{fig:propagation}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig2_rep_quantitative}
+\caption{Quantitative readout of the representative folded-surface slowdown. (A)
+Representative extracellular K$^+$ traces with threshold-crossing markers used to define arrival times; arrival was defined at the time when local membrane voltage crossed $V_m=-28$~mV, and the downstream E2 readout is delayed by 4.2~s in the dipole-enabled run. (B) Front arrival time plotted against geodesic distance along the same cross-sulcal path used for the representative kymograph; shading marks the sulcal segment, and the separation between conditions emerges across the sulcus and persists downstream.
+(C) Summary of the paired representative-run readouts for cross-fold speed, E1--E2 delay, and maximum absolute extracellular potential.}
 \label{fig:representative}
 \end{figure}
 
@@ -123,20 +161,20 @@ In the representative folded geometry, enabling sulcal dipole alignment slowed c
 \label{tab:representative}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-Case & Speed (mm/min) & Delay (s) & Max $|\phi|$ (a.u.) & Min oxygen \\
+Case & Speed (mm/min) & Delay (s) & Max $|V_e|$ (mV) & Min oxygen \\
 \midrule
-Baseline mechanistic & 2.488 & 134.4 & 18.20 & 1.00 \\
-Dipole-aligned mechanistic & 2.106 & 159.2 & 22.17 & 1.00 \\
-Full coupled sensitivity & 2.913 & 113.4 & 12.43 & 0.20 \\
+Baseline mechanistic & 2.558 & 130.5 & 18.99 & 1.00 \\
+Dipole-aligned mechanistic & 2.476 & 134.7 & 19.50 & 1.00 \\
+Full coupled sensitivity & 3.547 & 94.1 & 12.96 & 0.20 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The flat control provided an internal specificity check. When fold depth was set to zero, enabling the dipole term produced no change in cross-fold speed (3.282~mm/min in both conditions) and no change in cross-fold delay (70.62~s in both conditions). Thus, the effect requires folding geometry and is not merely a numerical artifact of adding a potential equation.
+The flat control provided an internal specificity check. When fold depth was set to zero, enabling the dipole term produced no change in cross-fold speed (3.623~mm/min in both conditions) and no change in cross-fold delay (64.30~s in both conditions). Thus, the effect requires folding geometry and is not merely a numerical artifact of adding a potential equation.
 
 \subsection{Geometry-sweep slowing}
 
-The paired geometry sweep gave a stronger and more general version of the same result (Fig.~\ref{fig:sweep}; Table~\ref{tab:stats}). All 12 folded geometries were slower with dipole alignment, whereas the flat control again showed exactly zero effect. The mean dipole-induced slowdown was 0.243~mm/min (95\% bootstrap confidence interval 0.208--0.276~mm/min), corresponding to a mean 9.08\% reduction in speed. The associated increase in cross-fold delay was 13.46~s (95\% confidence interval 12.25--14.65~s). One-sided paired Wilcoxon signed-rank tests were significant for cross-fold speed ($p=2.44\times 10^{-4}$), cross-fold delay ($p=2.44\times 10^{-4}$), and deep-edge local speed ($p=2.44\times 10^{-3}$).
+The paired geometry sweep gave a broader version of the same result (Fig.~\ref{fig:sweep}; Table~\ref{tab:stats}). All 12 folded geometries were slower with dipole alignment, whereas the flat control again showed exactly zero effect. The mean dipole-induced slowdown was 0.127~mm/min (95\% bootstrap confidence interval 0.104--0.154~mm/min), corresponding to a mean 4.65\% reduction in speed. The associated increase in cross-fold delay was 6.99~s (95\% confidence interval 5.58--8.48~s). One-sided paired Wilcoxon signed-rank tests were significant for cross-fold speed ($p=2.44\times 10^{-4}$) and cross-fold delay ($p=2.44\times 10^{-4}$). Slowdown tracked fold severity (Spearman $\rho=0.64$, $p=2.40\times 10^{-2}$), whereas the correlation with fold depth alone was positive but did not reach significance (Spearman $\rho=0.43$, $p=1.61\times 10^{-1}$).
 
 \begin{figure}[t]
 \centering
@@ -154,41 +192,59 @@ The paired geometry sweep gave a stronger and more general version of the same r
 Statistic & Value \\
 \midrule
 Folded geometries slower with dipole alignment & 12/12 \\
-Mean speed slowdown & 0.243~mm/min \\
-95\% CI for mean speed slowdown & 0.208--0.276~mm/min \\
-Mean relative speed reduction & 9.08\% \\
-Mean delay increase & 13.46~s \\
-95\% CI for mean delay increase & 12.25--14.65~s \\
-Mean deep-edge speed slowdown & 8.05~mm/min \\
+Mean speed slowdown & 0.127~mm/min \\
+95\% CI for mean speed slowdown & 0.104--0.154~mm/min \\
+Mean relative speed reduction & 4.65\% \\
+Mean delay increase & 6.99~s \\
+95\% CI for mean delay increase & 5.58--8.48~s \\
 Wilcoxon $p$ for speed decrease & $2.44\times 10^{-4}$ \\
 Wilcoxon $p$ for delay increase & $2.44\times 10^{-4}$ \\
-Wilcoxon $p$ for deep-edge slowdown & $2.44\times 10^{-3}$ \\
-Spearman $\rho$ (fold depth vs slowdown) & 0.95 \\
-Spearman $p$ (fold depth vs slowdown) & $2.25\times 10^{-6}$ \\
-Spearman $\rho$ (depth/$\sigma$ vs slowdown) & 0.61 \\
-Spearman $p$ (depth/$\sigma$ vs slowdown) & $3.58\times 10^{-2}$ \\
+Spearman $\rho$ (fold depth vs slowdown) & 0.43 \\
+Spearman $p$ (fold depth vs slowdown) & $1.61\times 10^{-1}$ \\
+Spearman $\rho$ (depth/$\sigma$ vs slowdown) & 0.64 \\
+Spearman $p$ (depth/$\sigma$ vs slowdown) & $2.40\times 10^{-2}$ \\
 Flat-control slowdown & 0.000~mm/min \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The size of the effect increased strongly with fold depth and more moderately with fold severity. This is the pattern expected if the sulcus acts as a geometry-specific electrodiffusive bottleneck: larger folds increase the alignment between the membrane-current dipole field and the path along which extracellular drift must act to impede cross-sulcus propagation.
+The size of the effect increased more clearly with fold severity than with fold depth alone. This is the pattern expected if the sulcus acts as a geometry-specific electrodiffusive bottleneck: the joint combination of depth and narrowness controls how strongly the screened dipole term projects onto the cross-sulcus propagation path.
+
+\subsection{Atlas-based sanity check}
+
+The atlas patch analysis preserved the sign of the effect beyond the synthetic strip without claiming subject-specific validation (Table~\ref{tab:atlas}). On the fsaverage6 sulcal patch, the stimulus-to-downstream propagation speed decreased from 7.682 to 7.412~mm/min when the dipole term was enabled, corresponding to a slowdown of 0.270~mm/min and a downstream arrival delay increase of 5.56~s. On the flatter matched patch, the corresponding slowdown was 0.069~mm/min and the downstream arrival delay increase was 1.31~s. The atlas check therefore supports the same qualitative interpretation as the synthetic sweep: the effect is present on a folded cortical patch and materially smaller on a flatter patch run under the same solver settings.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Atlas-based sulcal-versus-flatter patch sanity check on the public fsaverage6 left-hemisphere surface.}
+\label{tab:atlas}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Patch & Mean depth & No dipole speed & Dipole speed & Slowdown & Delay increase \\
+ & (norm.) & (mm/min) & (mm/min) & (mm/min) & (s) \\
+\midrule
+Sulcal patch & 0.733 & 7.682 & 7.412 & 0.270 & 5.56 \\
+Flatter patch & 0.116 & 8.599 & 8.529 & 0.069 & 1.31 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{The vascular extension is informative but not the primary evidence}
 
-Turning on the exploratory vascular extension changed the representative cross-fold speed to 2.913~mm/min while simultaneously lowering oxygen to 0.20 and perfusion to 0.25 in the most affected vertices. Local edge speeds were reduced, but the global cross-fold arrival metric accelerated because the altered oxygen-dependent thresholds and pump modulation changed overall excitability. This is precisely why the vascularly coupled run is not the primary test of the dipole hypothesis: it introduces an additional physiological regime change instead of isolating the dipole term within the same ionic transport model. We therefore treat it as a sensitivity analysis showing that neurovascular coupling can interact strongly with the geometry effect, not as contradictory evidence against sulcal dipole slowing.
+Turning on the exploratory vascular extension changed the representative cross-fold speed to 3.547~mm/min while simultaneously lowering oxygen to 0.20 and perfusion to 0.25 in the most affected vertices. Local edge speeds were altered, but the global cross-fold arrival metric accelerated because the oxygen-dependent thresholds and pump modulation changed overall excitability. This is precisely why the vascularly coupled run is not the primary test of the dipole hypothesis: it introduces an additional physiological regime change instead of isolating the dipole term within the same ionic transport model. We therefore treat it as a sensitivity analysis showing that neurovascular coupling can interact strongly with the geometry effect, not as contradictory evidence against sulcal dipole slowing.
 
 \section{Discussion}
 
-The main result of this study is mechanistic rather than merely phenomenological. Within a multi-ion surface electrodiffusion model in which extracellular diffusion remains the backbone of propagation, sulcal dipole alignment produced a consistent, statistically significant slowing effect that was absent on a flat control and became stronger in deeper folds. That finding advances the project beyond earlier scalar and tensor comparison papers because it no longer depends on a prescribed attenuation field alone. Instead, the slowing arises from the interaction between geometry, membrane-current orientation, quasi-static extracellular potential, and explicit ionic drift.
+The main result of this study is mechanistic rather than merely phenomenological. Within a multi-ion surface electrodiffusion model in which extracellular diffusion remains the backbone of propagation, sulcal dipole alignment produced a consistent, statistically significant slowing effect that was absent on a flat control and preserved on an atlas-derived sulcal patch. That finding advances the project beyond earlier scalar and tensor comparison papers because it no longer depends on a prescribed attenuation field alone. Instead, the slowing arises from the interaction between geometry, membrane-current orientation, a constrained quasi-static extracellular potential, and explicit ionic drift.
 
 The result is also well aligned with the broader CSD modeling literature. Classic and modern ionic models place extracellular K$^+$ transport, membrane fluxes, and ECS geometry at the center of the problem \citep{Tuckwell1978,Wei2014,Zandt2015}. Our model follows that logic directly by making extracellular diffusion and dynamic ECS restriction central, then adding the electrical component as a quasi-static electrodiffusive correction. In that sense, the study supports a restrained mechanistic claim: the relevant electromagnetic ingredient for CSD propagation is not wave-like radiation but the geometry-dependent extracellular potential generated by ionic charge separation and membrane currents.
 
-The geometry specificity of the result is important. The flat control did not slow at all when the dipole term was enabled, whereas every folded geometry slowed. That makes a purely numerical explanation unlikely and instead points back to the hypothesis that sulci differ from gyri because the alignment of local dipoles and the geometry of the extracellular path are intrinsically different across those structures. The strong correlation between slowing and fold depth reinforces that interpretation.
+The geometry specificity of the result is important. The flat control did not slow at all when the dipole term was enabled, whereas every folded geometry slowed. The atlas sanity check then showed a larger slowdown on a sulcal patch than on a flatter matched patch under the same solver settings. That makes a purely numerical explanation unlikely and instead points back to the hypothesis that sulci differ from gyri because the alignment of local dipoles and the geometry of the extracellular path are intrinsically different across those structures. In the present parameterization, the effect tracks fold severity more clearly than fold depth alone, which is consistent with the idea that both depth and bank spacing shape the screened dipole coupling.
 
 The study also shows why vascular coupling must be handled carefully. The optional perfusion--oxygen extension did not merely add a small correction to the dipole result; it changed the overall excitability regime. That behavior is biologically plausible, but it also means that the vascular subsystem should be treated as a second-stage sensitivity analysis rather than folded into the primary claim. For a mechanistic paper centered on sulcal dipole alignment, the clean evidence is the paired comparison between the same ionic model with and without dipole alignment.
 
-Several limitations define the scope of the present submission. First, the geometry is synthetic rather than subject-specific, so the current manuscript does not yet test dipole-induced slowing on reconstructed human cortical surfaces. Second, the electrical model is quasi-static and charge-aware, but it is still a reduced surface formulation rather than a full multidomain electrodiffusion model with explicit neuronal and glial compartments. Third, we benchmarked propagation speed and arrival-time delay, but we did not fit extracellular waveforms or direct-current shifts against experimental recordings. Fourth, the swelling state approached its model-imposed upper bound in several runs, indicating that future versions should include a more constrained volume regulation law. These limitations argue for the next steps rather than against the present conclusion: subject-specific surface bundles, waveform-level validation, and a higher-fidelity multidomain formulation would all strengthen the causal interpretation further.
+Several limitations define the scope of the present submission. First, the primary evidence still comes from controlled synthetic folded surfaces; the atlas patch analysis is only a sanity check and does not constitute subject-specific human validation. Second, the electrical model is quasi-static and charge-aware, but it is still a reduced surface formulation rather than a full multidomain electrodiffusion model with explicit neuronal and glial compartments. Third, we benchmarked propagation speed and arrival-time delay and showed the evolving K$^+$ wave directly, but we did not fit extracellular waveforms or direct-current shifts against experimental recordings. Fourth, the swelling state approached its model-imposed upper bound in several runs, indicating that future versions should include a more constrained volume regulation law. These limitations argue for the next steps rather than against the present conclusion: subject-specific surface bundles, waveform-level validation, and a higher-fidelity multidomain formulation would all strengthen the causal interpretation further.
 
 Within those limits, the manuscript supports a stronger claim than the earlier tensor study. Sulcal dipole alignment is not merely compatible with CSD slowing; in a mechanistic surface electrodiffusion model it adds a significant, geometry-specific slowing term on top of extracellular diffusion, and that term scales with fold depth. That makes the current model suitable as a mechanistic hypothesis paper and a more credible basis for future patient-specific or experimentally benchmarked work.
 

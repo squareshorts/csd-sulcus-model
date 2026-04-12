@@ -9,7 +9,7 @@ This repository contains a reproducible cortical spreading depolarization (CSD) 
 - `scripts/run_biophysical_validation.py`: microstructure-constrained biophysical validation sweep
 - `scripts/run_physiology_anchor.py`: upgraded physiological speed/delay anchoring logic
 - `scripts/run_surface_representative.py`: cortical-surface representative scaffold comparing diffusion-only, anisotropic diffusion, dipole electrodiffusion, and vascularly coupled electrodiffusion families
-- `scripts/run_surface_mechanistic_study.py`: stronger mechanistic surface study comparing the same multi-ion electrodiffusion model with and without sulcal dipole alignment, plus a folded-geometry statistics sweep
+- `scripts/run_surface_mechanistic_study.py`: stronger mechanistic surface study comparing the same multi-ion electrodiffusion model with and without sulcal dipole alignment, plus a folded-geometry statistics sweep, an atlas-based sulcal-versus-flatter patch sanity check, and a propagation figure
 - `scripts/prepare_surface_bundle.py`: prepares a ready-to-run cortical-surface NPZ bundle from FreeSurfer or HCP-style files
 - `src/csd_sulcus/`: reusable model, analysis, and plotting code
 - `tests/test_study.py`: smoke tests for determinism, monotonic slowing, tensor positivity, and physiology-extension ordering
@@ -31,7 +31,7 @@ For test dependencies:
 python -m pip install -e .[dev]
 ```
 
-For cortical-surface GIFTI support:
+For cortical-surface GIFTI support and the atlas patch sanity check:
 
 ```bash
 python -m pip install -e .[surface]
@@ -136,6 +136,8 @@ The prep script also derives a tangential preferred-axis field from the sulcal-d
 - `outputs/surface_representative*/surface_representative_summary.csv`: representative reduced surface-model summary table
 - `outputs/surface_mechanistic_study/mechanistic_study_summary.json`: stronger mechanistic surface-study summary and paired statistics
 - `outputs/surface_mechanistic_study/mechanistic_geometry_sweep.csv`: folded-geometry sweep for the mechanistic surface model
+- `outputs/surface_mechanistic_study/mechanistic_atlas_patch_check.csv`: atlas-based sulcal-versus-flatter patch sanity-check table
+- `outputs/surface_mechanistic_study/mechanistic_wave_propagation.png`: representative propagation snapshots and cross-sulcal kymographs
 - `data/*_surface_bundle.npz`: prepared cortical-surface bundle containing vertices, faces, sulcal depth, thickness, vascular risk, and preferred-axis fields
 - `manuscript/reframed_submission.tex`: current submission draft with local figure paths
 

@@ -143,7 +143,7 @@ def read_surface_geometry(path: str | Path) -> tuple[np.ndarray, np.ndarray]:
         return vertices, faces
     if suffix == '.obj':
         return _load_obj_mesh(surface_path)
-    if suffix == '.gii' or surface_path.name.endswith('.surf.gii'):
+    if suffix in {'.gii', '.gz'} and surface_path.name.endswith(('.surf.gii', '.surf.gii.gz', '.gii.gz')):
         return _load_gifti_mesh(surface_path)
 
     try:
@@ -163,7 +163,7 @@ def read_surface_geometry(path: str | Path) -> tuple[np.ndarray, np.ndarray]:
 def read_surface_scalar(path: str | Path, n_vertices: int) -> np.ndarray:
     field_path = Path(path)
     suffix = field_path.suffix.lower()
-    if suffix in {'.npy', '.npz', '.gii'} or field_path.name.endswith('.shape.gii'):
+    if suffix in {'.npy', '.npz', '.gii', '.gz'} or field_path.name.endswith(('.shape.gii', '.shape.gii.gz', '.gii.gz')):
         return _load_scalar_field(field_path, n_vertices)
 
     try:

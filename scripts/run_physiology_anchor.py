@@ -265,7 +265,6 @@ def plot_anchor(
     left.set_xlim(0.5, len(METRICS) + 0.5)
     left.set_xticks([1, 2, 3], [label for _, label, _ in METRICS])
     left.set_ylabel("Speed (mm/min)")
-    left.set_title("Speeds vs. published bands")
     left.legend(loc="upper right", frameon=False, fontsize=8)
 
     # ---- Panel B: tensor-minus-scalar gains ----
@@ -280,7 +279,6 @@ def plot_anchor(
     mid.set_xlim(1, len(gains))
     mid.set_xlabel("Candidate rank")
     mid.set_ylabel("Tensor \u2212 scalar (mm/min)")
-    mid.set_title("Ordering: all gains > 0")
 
     # ---- Panel C: scalar downstream delay vs. COSBID band ----
     right = axes[2]
@@ -295,7 +293,6 @@ def plot_anchor(
     right.set_xlim(1, len(delays))
     right.set_xlabel("Candidate rank")
     right.set_ylabel("Scalar downstream delay (s)")
-    right.set_title("Downstream delay vs. COSBID range")
     right.legend(loc="upper left", frameon=False, fontsize=9)
 
     fig.savefig(output_path, dpi=300, bbox_inches="tight")

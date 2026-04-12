@@ -1,3 +1,4 @@
+from .atlas_patch import AtlasPatch, AtlasPatchPair, extract_patch_pair_from_mesh, prepare_atlas_patch_pair
 from .analysis import (
     ConditionComparison,
     ElectrodeMeasurement,
@@ -18,6 +19,8 @@ from .surface_model import SurfaceParams, SurfaceSimulationOutput, run_surface_s
 from .surface_prep import PreparedSurfaceBundle, derive_midthickness, prepare_surface_bundle, write_surface_bundle
 
 __all__ = [
+    'AtlasPatch',
+    'AtlasPatchPair',
     'ConditionComparison',
     'ElectrodeMeasurement',
     'MechanisticSurfaceParams',
@@ -30,11 +33,13 @@ __all__ = [
     'SurfaceSimulationOutput',
     'compare_control_vs_dipole',
     'derive_midthickness',
+    'extract_patch_pair_from_mesh',
     'generate_folded_strip_mesh',
     'load_surface_mesh',
     'mechanistic_edge_speed_stats',
     'mechanistic_surface_arrival_speed_mm_min',
     'multi_seed_robustness',
+    'prepare_atlas_patch_pair',
     'prepare_surface_bundle',
     'run_mechanistic_surface_simulation',
     'run_simulation',

@@ -94,3 +94,50 @@ def test_mechanistic_vascular_extension_changes_coupled_state_variables() -> Non
     assert np.nanmin(coupled.oxygen) < np.nanmin(uncoupled.oxygen)
     assert np.nanmin(coupled.perfusion) < np.nanmin(uncoupled.perfusion)
     assert np.nanmedian(np.abs(coupled.arrival_times[shared] - uncoupled.arrival_times[shared])) > 0.5
+
+
+def test_mechanistic_null_models_weaken_orientation_specific_slowing() -> None:
+    mesh = generate_folded_strip_mesh(
+        nx=30,
+        ny=16,
+        length_mm=18.0,
+        width_mm=8.0,
+        fold_depth_mm=2.4,
+        fold_sigma_mm=1.5,
+    )
+    base = MechanisticSurfaceParams(final_t_end=180.0, enable_vascular_feedback=False)
+
+    _, baseline_speed = _run_case(mesh, dc.replace(base, enable_dipole_alignment=False))
+    _, aligned_speed = _run_case(mesh, dc.replace(base, enable_dipole_alignment=True, dipole_kernel_mode='aligned'))
+    _, distance_only_speed = _run_case(
+        mesh,
+        dc.replace(base, enable_dipole_alignment=True, dipole_kernel_mode='distance_only'),
+    )
+    _, scrambled_speed = _run_case(
+        mesh,
+        dc.replace(base, enable_dipole_alignment=True, dipole_kernel_mode='scrambled_normals'),
+    )
+
+    aligned_slowdown = baseline_speed - aligned_speed
+    distance_only_slowdown = baseline_speed - distance_only_speed
+    scrambled_slowdown = baseline_speed - scrambled_speed
+
+    assert aligned_slowdown > 0.05
+    assert aligned_slowdown > distance_only_slowdown + 0.03
+    assert aligned_slowdown > scrambled_slowdown + 0.03
+
+
+def test_mechanistic_swelling_uses_soft_cap_instead_of_hard_saturation() -> None:
+    mesh = generate_folded_strip_mesh(
+        nx=32,
+        ny=16,
+        length_mm=18.0,
+        width_mm=8.0,
+        fold_depth_mm=2.4,
+        fold_sigma_mm=1.5,
+    )
+    params = MechanisticSurfaceParams(final_t_end=180.0, enable_vascular_feedback=False)
+    output, _ = _run_case(mesh, params)
+
+    assert np.nanmax(output.swelling) > 0.2
+    assert np.nanmax(output.swelling) < 0.95 * output.params.swelling_target_max

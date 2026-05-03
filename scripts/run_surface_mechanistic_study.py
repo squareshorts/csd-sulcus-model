@@ -11,6 +11,7 @@ import matplotlib
 import numpy as np
 from scipy.sparse import csgraph
 from scipy.stats import spearmanr, wilcoxon
+from matplotlib.lines import Line2D
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
@@ -20,7 +21,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 
-from csd_sulcus.atlas_patch import prepare_atlas_patch_pair
+from csd_sulcus.atlas_patch import prepare_atlas_multi_patch_panel
 from csd_sulcus.surface_io import generate_folded_strip_mesh
 from csd_sulcus.surface_mechanistic import (
     MechanisticSurfaceParams,
@@ -96,11 +97,50 @@ def _compute_case_metrics(output, e1_vertex: int, e2_vertex: int, roi_radius_mm:
         'max_potassium_e_mM': _safe_float(np.nanmax(output.potassium_e)),
         'min_sodium_e_mM': _safe_float(np.nanmin(output.sodium_e)),
         'max_swelling_au': _safe_float(np.nanmax(output.swelling)),
+        'swelling_cap_au': _safe_float(output.params.swelling_target_max),
+        'swelling_cap_fraction': _safe_float(np.nanmax(output.swelling) / max(output.params.swelling_target_max, 1e-6)),
         'min_oxygen_au': _safe_float(np.nanmin(output.oxygen)),
         'min_perfusion_au': _safe_float(np.nanmin(output.perfusion)),
         'dipole_alignment': bool(output.params.enable_dipole_alignment),
         'vascular_feedback': bool(output.params.enable_vascular_feedback),
+        'dipole_kernel_mode': str(output.params.dipole_kernel_mode),
     }
+
+
+def _safe_difference(lhs: float | None, rhs: float | None) -> float | None:
+    if lhs is None or rhs is None:
+        return None
+    return _safe_float(float(lhs) - float(rhs))
+
+
+def _paired_outputs(
+    mesh,
+    base_params: MechanisticSurfaceParams,
+    stimulus_vertex: int,
+    e1_vertex: int,
+    e2_vertex: int,
+    *,
+    comparison_params: MechanisticSurfaceParams | None = None,
+    snapshot_times=(),
+):
+    baseline_params = dc.replace(base_params, enable_dipole_alignment=False, dipole_kernel_mode='aligned')
+    if comparison_params is None:
+        comparison_params = dc.replace(base_params, enable_dipole_alignment=True, dipole_kernel_mode='aligned')
+    baseline_output = run_mechanistic_surface_simulation(
+        mesh,
+        baseline_params,
+        stimulus_vertex=stimulus_vertex,
+        snapshot_times=snapshot_times,
+    )
+    comparison_output = run_mechanistic_surface_simulation(
+        mesh,
+        comparison_params,
+        stimulus_vertex=stimulus_vertex,
+        snapshot_times=snapshot_times,
+    )
+    baseline_metrics = _compute_case_metrics(baseline_output, e1_vertex, e2_vertex)
+    comparison_metrics = _compute_case_metrics(comparison_output, e1_vertex, e2_vertex)
+    return baseline_output, comparison_output, baseline_metrics, comparison_metrics
 
 
 def _write_csv(path: Path, rows: list[dict]) -> None:
@@ -332,6 +372,550 @@ def _save_representative_figure(rows: list[dict], output_path: Path) -> None:
     plt.close(fig)
 
 
+def _sensitivity_parameter_specs() -> list[tuple[str, str, list[float]]]:
+    return [
+        ('field_reference_mV', r'$V_0$ (mV)', [3.0, 5.0, 7.0]),
+        ('electrodiffusion_mobility_fraction', r'$m_{\mathrm{ed}}$', [0.25, 0.50, 0.75]),
+        ('dipole_screening_length_mm', r'$\ell_d$ (mm)', [2.5, 4.0, 5.5]),
+        ('dipole_cutoff_mm', r'$d_c$ (mm)', [8.0, 12.0, 16.0]),
+        ('dipole_field_gain', r'$\gamma_d$ (a.u.)', [1.00, 1.50, 2.00]),
+    ]
+
+
+def _sensitivity_geometry_specs() -> list[tuple[str, float, float]]:
+    return [
+        ('flat_control', 0.0, 1.5),
+        ('low_severity', 1.2, 1.9),
+        ('representative', 2.4, 1.5),
+        ('high_severity', 3.0, 1.1),
+    ]
+
+
+def _is_monotone_non_decreasing(values: list[float], tolerance: float = 1e-6) -> bool:
+    arr = np.asarray(values, dtype=float)
+    if arr.size < 2 or not np.all(np.isfinite(arr)):
+        return False
+    return bool(np.all(np.diff(arr) >= -tolerance))
+
+
+def _sensitivity_rows(output_dir: Path) -> tuple[list[dict], list[dict], dict[str, object], Path]:
+    output_path = output_dir / 'mechanistic_dipole_sensitivity.csv'
+    summary_path = output_dir / 'mechanistic_dipole_sensitivity_summary.csv'
+    base_params = MechanisticSurfaceParams(final_t_end=190.0, enable_vascular_feedback=False)
+
+    rows: list[dict] = []
+    summary_rows: list[dict] = []
+    for parameter_name, parameter_label, values in _sensitivity_parameter_specs():
+        for parameter_value in values:
+            setting_rows: list[dict] = []
+            for geometry_label, fold_depth_mm, fold_sigma_mm in _sensitivity_geometry_specs():
+                mesh = generate_folded_strip_mesh(
+                    nx=52,
+                    ny=24,
+                    length_mm=22.0,
+                    width_mm=10.0,
+                    fold_depth_mm=fold_depth_mm,
+                    fold_sigma_mm=fold_sigma_mm,
+                )
+                stimulus_vertex, e1_vertex, e2_vertex = choose_auto_vertices(mesh)
+                tuned_params = dc.replace(base_params, **{parameter_name: parameter_value})
+                _, _, baseline, dipole = _paired_outputs(
+                    mesh,
+                    tuned_params,
+                    stimulus_vertex,
+                    e1_vertex,
+                    e2_vertex,
+                )
+                row = {
+                    'parameter_name': parameter_name,
+                    'parameter_label': parameter_label,
+                    'parameter_value': float(parameter_value),
+                    'geometry_label': geometry_label,
+                    'fold_depth_mm': float(fold_depth_mm),
+                    'fold_sigma_mm': float(fold_sigma_mm),
+                    'fold_severity': float(fold_depth_mm / fold_sigma_mm if fold_sigma_mm > 0.0 else 0.0),
+                    'baseline_arrival_speed_mm_min': baseline['arrival_speed_mm_min'],
+                    'dipole_arrival_speed_mm_min': dipole['arrival_speed_mm_min'],
+                    'baseline_cross_fold_delay_s': baseline['cross_fold_delay_s'],
+                    'dipole_cross_fold_delay_s': dipole['cross_fold_delay_s'],
+                    'speed_slowdown_mm_min': _safe_difference(
+                        baseline['arrival_speed_mm_min'],
+                        dipole['arrival_speed_mm_min'],
+                    ),
+                    'delay_increase_s': _safe_difference(
+                        dipole['cross_fold_delay_s'],
+                        baseline['cross_fold_delay_s'],
+                    ),
+                    'baseline_max_abs_potential_mV': baseline['max_abs_potential_mV'],
+                    'dipole_max_abs_potential_mV': dipole['max_abs_potential_mV'],
+                    'baseline_swelling_cap_fraction': baseline['swelling_cap_fraction'],
+                    'dipole_swelling_cap_fraction': dipole['swelling_cap_fraction'],
+                }
+                rows.append(row)
+                setting_rows.append(row)
+
+            by_geometry = {row['geometry_label']: row for row in setting_rows}
+            folded_slowdown = [
+                float(by_geometry[label]['speed_slowdown_mm_min'])
+                for label in ('low_severity', 'representative', 'high_severity')
+            ]
+            summary_rows.append(
+                {
+                    'parameter_name': parameter_name,
+                    'parameter_label': parameter_label,
+                    'parameter_value': float(parameter_value),
+                    'all_folded_slower': bool(all(value > 0.0 for value in folded_slowdown)),
+                    'flat_abs_slowdown_mm_min': _safe_float(abs(float(by_geometry['flat_control']['speed_slowdown_mm_min']))),
+                    'severity_monotone': _is_monotone_non_decreasing(folded_slowdown),
+                    'low_severity_slowdown_mm_min': by_geometry['low_severity']['speed_slowdown_mm_min'],
+                    'representative_slowdown_mm_min': by_geometry['representative']['speed_slowdown_mm_min'],
+                    'high_severity_slowdown_mm_min': by_geometry['high_severity']['speed_slowdown_mm_min'],
+                }
+            )
+
+    _write_csv(output_path, rows)
+    _write_csv(summary_path, summary_rows)
+    figure_path = output_dir / 'mechanistic_dipole_sensitivity.png'
+    return rows, summary_rows, {
+        'n_rows': int(len(rows)),
+        'all_settings_folded_positive': bool(all(row['all_folded_slower'] for row in summary_rows)),
+        'max_flat_abs_slowdown_mm_min': _safe_float(max(float(row['flat_abs_slowdown_mm_min']) for row in summary_rows)),
+        'monotone_settings': int(sum(bool(row['severity_monotone']) for row in summary_rows)),
+        'n_settings': int(len(summary_rows)),
+        'figure_path': str(figure_path),
+    }, figure_path
+
+
+def _save_sensitivity_figure(rows: list[dict], output_path: Path) -> None:
+    parameter_specs = _sensitivity_parameter_specs()
+    geometry_styles = {
+        'flat_control': dict(color='black', marker='s', linestyle=':', label='Flat control'),
+        'low_severity': dict(color='#4c78a8', marker='o', linestyle='-', label='Low severity'),
+        'representative': dict(color='#f58518', marker='o', linestyle='-', label='Representative'),
+        'high_severity': dict(color='#e45756', marker='o', linestyle='-', label='High severity'),
+    }
+    fig, axes = plt.subplots(2, 3, figsize=(12.0, 6.8), constrained_layout=True)
+    axes = axes.ravel()
+
+    for axis, (parameter_name, parameter_label, values) in zip(axes, parameter_specs):
+        parameter_rows = [row for row in rows if row['parameter_name'] == parameter_name]
+        for geometry_label, style in geometry_styles.items():
+            geometry_rows = [row for row in parameter_rows if row['geometry_label'] == geometry_label]
+            geometry_rows.sort(key=lambda row: row['parameter_value'])
+            axis.plot(
+                [row['parameter_value'] for row in geometry_rows],
+                [row['speed_slowdown_mm_min'] for row in geometry_rows],
+                color=style['color'],
+                marker=style['marker'],
+                linestyle=style['linestyle'],
+                linewidth=1.6,
+                label=style['label'],
+            )
+        axis.axhline(0.0, color='black', linewidth=0.8, alpha=0.45)
+        axis.set_title(parameter_label)
+        axis.set_xlabel(parameter_label)
+        axis.set_ylabel('Slowdown (mm/min)')
+        axis.grid(alpha=0.25)
+
+    legend_handles = [
+        Line2D(
+            [0],
+            [0],
+            color=style['color'],
+            marker=style['marker'],
+            linestyle=style['linestyle'],
+            linewidth=1.6,
+            label=style['label'],
+        )
+        for style in geometry_styles.values()
+    ]
+    axes[-1].legend(handles=legend_handles, loc='center', frameon=False)
+    axes[-1].axis('off')
+    fig.savefig(output_path, dpi=180)
+    plt.close(fig)
+
+
+def _null_model_rows(output_dir: Path) -> tuple[list[dict], dict[str, object], Path]:
+    mesh = generate_folded_strip_mesh(nx=64, ny=28, length_mm=22.0, width_mm=10.0, fold_depth_mm=2.4, fold_sigma_mm=1.5)
+    stimulus_vertex, e1_vertex, e2_vertex = choose_auto_vertices(mesh)
+    base_params = MechanisticSurfaceParams(final_t_end=210.0, enable_vascular_feedback=False)
+    variant_specs = [
+        ('aligned', 'Aligned dipole', dc.replace(base_params, enable_dipole_alignment=True, dipole_kernel_mode='aligned')),
+        ('distance_only', 'Distance-only kernel', dc.replace(base_params, enable_dipole_alignment=True, dipole_kernel_mode='distance_only')),
+        ('scrambled_normals', 'Scrambled-normal kernel', dc.replace(base_params, enable_dipole_alignment=True, dipole_kernel_mode='scrambled_normals')),
+    ]
+
+    baseline_output = run_mechanistic_surface_simulation(
+        mesh,
+        dc.replace(base_params, enable_dipole_alignment=False, dipole_kernel_mode='aligned'),
+        stimulus_vertex=stimulus_vertex,
+    )
+    baseline_metrics = _compute_case_metrics(baseline_output, e1_vertex, e2_vertex)
+
+    rows: list[dict] = [
+        {
+            'kernel_mode': 'baseline',
+            'kernel_title': 'No dipole',
+            'arrival_speed_mm_min': baseline_metrics['arrival_speed_mm_min'],
+            'cross_fold_delay_s': baseline_metrics['cross_fold_delay_s'],
+            'max_abs_potential_mV': baseline_metrics['max_abs_potential_mV'],
+            'speed_slowdown_mm_min': 0.0,
+            'delay_increase_s': 0.0,
+            'swelling_cap_fraction': baseline_metrics['swelling_cap_fraction'],
+        }
+    ]
+    for kernel_mode, kernel_title, comparison_params in variant_specs:
+        output = run_mechanistic_surface_simulation(
+            mesh,
+            comparison_params,
+            stimulus_vertex=stimulus_vertex,
+        )
+        metrics = _compute_case_metrics(output, e1_vertex, e2_vertex)
+        rows.append(
+            {
+                'kernel_mode': kernel_mode,
+                'kernel_title': kernel_title,
+                'arrival_speed_mm_min': metrics['arrival_speed_mm_min'],
+                'cross_fold_delay_s': metrics['cross_fold_delay_s'],
+                'max_abs_potential_mV': metrics['max_abs_potential_mV'],
+                'speed_slowdown_mm_min': _safe_difference(
+                    baseline_metrics['arrival_speed_mm_min'],
+                    metrics['arrival_speed_mm_min'],
+                ),
+                'delay_increase_s': _safe_difference(
+                    metrics['cross_fold_delay_s'],
+                    baseline_metrics['cross_fold_delay_s'],
+                ),
+                'swelling_cap_fraction': metrics['swelling_cap_fraction'],
+            }
+        )
+
+    _write_csv(output_dir / 'mechanistic_null_models.csv', rows)
+    figure_path = output_dir / 'mechanistic_null_models.png'
+    aligned = next(row for row in rows if row['kernel_mode'] == 'aligned')
+    distance_only = next(row for row in rows if row['kernel_mode'] == 'distance_only')
+    scrambled = next(row for row in rows if row['kernel_mode'] == 'scrambled_normals')
+    summary = {
+        'aligned_slowdown_mm_min': aligned['speed_slowdown_mm_min'],
+        'distance_only_slowdown_mm_min': distance_only['speed_slowdown_mm_min'],
+        'scrambled_normals_slowdown_mm_min': scrambled['speed_slowdown_mm_min'],
+        'aligned_delay_increase_s': aligned['delay_increase_s'],
+        'aligned_stronger_than_distance_only': bool(float(aligned['speed_slowdown_mm_min']) > float(distance_only['speed_slowdown_mm_min'])),
+        'aligned_stronger_than_scrambled_normals': bool(float(aligned['speed_slowdown_mm_min']) > float(scrambled['speed_slowdown_mm_min'])),
+        'figure_path': str(figure_path),
+    }
+    return rows, summary, figure_path
+
+
+def _save_null_model_figure(rows: list[dict], output_path: Path) -> None:
+    variant_rows = [row for row in rows if row['kernel_mode'] != 'baseline']
+    labels = [row['kernel_title'] for row in variant_rows]
+    slowdown = np.asarray([row['speed_slowdown_mm_min'] for row in variant_rows], dtype=float)
+    delay = np.asarray([row['delay_increase_s'] for row in variant_rows], dtype=float)
+    x = np.arange(len(labels))
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.2, 4.0), constrained_layout=True)
+    axes[0].bar(x, slowdown, color=['#e45756', '#72b7b2', '#4c78a8'], edgecolor='black', linewidth=0.5)
+    axes[0].set_xticks(x, labels, rotation=15)
+    axes[0].set_ylabel('Speed slowdown (mm/min)')
+    axes[0].axhline(0.0, color='black', linewidth=0.8, alpha=0.45)
+    axes[0].grid(axis='y', alpha=0.25)
+
+    axes[1].bar(x, delay, color=['#e45756', '#72b7b2', '#4c78a8'], edgecolor='black', linewidth=0.5)
+    axes[1].set_xticks(x, labels, rotation=15)
+    axes[1].set_ylabel('Delay increase (s)')
+    axes[1].axhline(0.0, color='black', linewidth=0.8, alpha=0.45)
+    axes[1].grid(axis='y', alpha=0.25)
+
+    fig.savefig(output_path, dpi=180)
+    plt.close(fig)
+
+
+def _crossing_time(times: np.ndarray, values: np.ndarray, threshold: float) -> float | None:
+    above = np.asarray(values >= threshold, dtype=bool)
+    if not np.any(above):
+        return None
+    idx = int(np.argmax(above))
+    if idx == 0:
+        return float(times[0])
+    t0, t1 = float(times[idx - 1]), float(times[idx])
+    v0, v1 = float(values[idx - 1]), float(values[idx])
+    if math.isclose(v0, v1, rel_tol=0.0, abs_tol=1e-12):
+        return t1
+    frac = (threshold - v0) / (v1 - v0)
+    return float(t0 + frac * (t1 - t0))
+
+
+def _trace_shape_metrics(times: np.ndarray, values: np.ndarray) -> dict[str, float | None]:
+    baseline = float(np.mean(values[: min(5, values.size)]))
+    centered = np.asarray(values, dtype=float) - baseline
+    if centered.size == 0 or not np.any(np.isfinite(centered)):
+        return {
+            'baseline': _safe_float(baseline),
+            'peak_shift': None,
+            'peak_time_s': None,
+            'rise_10_90_s': None,
+        }
+    peak_idx = int(np.argmax(np.abs(centered)))
+    peak_shift = float(centered[peak_idx])
+    if math.isclose(peak_shift, 0.0, rel_tol=0.0, abs_tol=1e-12):
+        return {
+            'baseline': _safe_float(baseline),
+            'peak_shift': 0.0,
+            'peak_time_s': _safe_float(times[peak_idx]),
+            'rise_10_90_s': 0.0,
+        }
+    oriented = centered * np.sign(peak_shift)
+    magnitude = abs(peak_shift)
+    t10 = _crossing_time(times, oriented, 0.10 * magnitude)
+    t90 = _crossing_time(times, oriented, 0.90 * magnitude)
+    rise = None if t10 is None or t90 is None else _safe_float(t90 - t10)
+    return {
+        'baseline': _safe_float(baseline),
+        'peak_shift': _safe_float(peak_shift),
+        'peak_time_s': _safe_float(times[peak_idx]),
+        'rise_10_90_s': rise,
+    }
+
+
+def _waveform_rows(output_dir: Path) -> tuple[list[dict], list[dict], dict[str, object], Path]:
+    trace_times = np.arange(0.0, 220.0 + 0.25, 0.5, dtype=float)
+    base_params = MechanisticSurfaceParams(final_t_end=220.0, enable_vascular_feedback=False)
+    geometry_specs = [
+        ('representative_folded', 2.4, 1.5),
+        ('flat_control', 0.0, 1.5),
+    ]
+
+    trace_rows: list[dict] = []
+    summary_rows: list[dict] = []
+    for geometry_label, fold_depth_mm, fold_sigma_mm in geometry_specs:
+        mesh = generate_folded_strip_mesh(
+            nx=64,
+            ny=28,
+            length_mm=22.0,
+            width_mm=10.0,
+            fold_depth_mm=fold_depth_mm,
+            fold_sigma_mm=fold_sigma_mm,
+        )
+        stimulus_vertex, e1_vertex, e2_vertex = choose_auto_vertices(mesh)
+        baseline_output, dipole_output, baseline_metrics, dipole_metrics = _paired_outputs(
+            mesh,
+            base_params,
+            stimulus_vertex,
+            e1_vertex,
+            e2_vertex,
+            snapshot_times=trace_times,
+        )
+
+        case_specs = [
+            ('no_dipole', baseline_output, baseline_metrics),
+            ('dipole_enabled', dipole_output, dipole_metrics),
+        ]
+        for case_label, output, metrics in case_specs:
+            for electrode_label, vertex in (('E1', e1_vertex), ('E2', e2_vertex)):
+                potential_mv = output.params.field_reference_mV * output.snapshot_potential[:, vertex]
+                potassium_trace = output.snapshot_potassium_e[:, vertex]
+                membrane_trace = output.snapshot_voltage_mv[:, vertex]
+
+                k_metrics = _trace_shape_metrics(trace_times, potassium_trace)
+                ve_metrics = _trace_shape_metrics(trace_times, potential_mv)
+                threshold_cross = _crossing_time(
+                    trace_times,
+                    membrane_trace,
+                    output.params.arrival_voltage_threshold_mv,
+                )
+                summary_rows.append(
+                    {
+                        'geometry_label': geometry_label,
+                        'case_label': case_label,
+                        'electrode_label': electrode_label,
+                        'arrival_time_s': _safe_float(output.arrival_times[vertex]),
+                        'membrane_threshold_cross_s': threshold_cross,
+                        'k_peak_shift_mM': k_metrics['peak_shift'],
+                        'k_peak_time_s': k_metrics['peak_time_s'],
+                        'k_rise_10_90_s': k_metrics['rise_10_90_s'],
+                        'dc_peak_shift_mV': ve_metrics['peak_shift'],
+                        'dc_peak_time_s': ve_metrics['peak_time_s'],
+                        'dc_rise_10_90_s': ve_metrics['rise_10_90_s'],
+                        'max_abs_potential_mV': metrics['max_abs_potential_mV'],
+                    }
+                )
+                for time_s, potassium_e, potential_value, membrane_voltage in zip(
+                    trace_times,
+                    potassium_trace,
+                    potential_mv,
+                    membrane_trace,
+                ):
+                    trace_rows.append(
+                        {
+                            'geometry_label': geometry_label,
+                            'case_label': case_label,
+                            'electrode_label': electrode_label,
+                            'time_s': _safe_float(time_s),
+                            'potassium_e_mM': _safe_float(potassium_e),
+                            'extracellular_potential_mV': _safe_float(potential_value),
+                            'membrane_voltage_mV': _safe_float(membrane_voltage),
+                        }
+                    )
+
+    _write_csv(output_dir / 'mechanistic_virtual_electrode_traces.csv', trace_rows)
+    _write_csv(output_dir / 'mechanistic_virtual_electrode_summary.csv', summary_rows)
+    figure_path = output_dir / 'mechanistic_virtual_electrode_waveforms.png'
+    representative_e2 = [
+        row
+        for row in summary_rows
+        if row['geometry_label'] == 'representative_folded' and row['electrode_label'] == 'E2'
+    ]
+    flat_e2 = [
+        row
+        for row in summary_rows
+        if row['geometry_label'] == 'flat_control' and row['electrode_label'] == 'E2'
+    ]
+    summary = {
+        'representative_e2_cases': representative_e2,
+        'flat_e2_cases': flat_e2,
+        'figure_path': str(figure_path),
+    }
+    return trace_rows, summary_rows, summary, figure_path
+
+
+def _save_waveform_figure(trace_rows: list[dict], output_path: Path) -> None:
+    def _filter_trace(geometry_label: str, case_label: str):
+        filtered = [
+            row for row in trace_rows
+            if row['geometry_label'] == geometry_label
+            and row['case_label'] == case_label
+            and row['electrode_label'] == 'E2'
+        ]
+        filtered.sort(key=lambda row: row['time_s'])
+        times = np.asarray([row['time_s'] for row in filtered], dtype=float)
+        potassium = np.asarray([row['potassium_e_mM'] for row in filtered], dtype=float)
+        potential = np.asarray([row['extracellular_potential_mV'] for row in filtered], dtype=float)
+        return times, potassium, potential
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.2, 6.2), sharex=True, constrained_layout=True)
+    for col, geometry_label in enumerate(('representative_folded', 'flat_control')):
+        geometry_title = 'Representative folded' if geometry_label == 'representative_folded' else 'Flat control'
+        for case_label, color, linestyle in (
+            ('no_dipole', '#4c78a8', '-'),
+            ('dipole_enabled', '#e45756', '--'),
+        ):
+            times, potassium, potential = _filter_trace(geometry_label, case_label)
+            axes[0, col].plot(times, potassium, color=color, linestyle=linestyle, linewidth=1.8, label=case_label.replace('_', ' '))
+            axes[1, col].plot(times, potential, color=color, linestyle=linestyle, linewidth=1.8, label=case_label.replace('_', ' '))
+        axes[0, col].set_title(geometry_title)
+        axes[0, col].set_ylabel('Extracellular K+ (mM)')
+        axes[1, col].set_ylabel('Extracellular potential (mV)')
+        axes[1, col].set_xlabel('Time (s)')
+        axes[0, col].grid(alpha=0.25)
+        axes[1, col].grid(alpha=0.25)
+        axes[1, col].axhline(0.0, color='black', linewidth=0.8, alpha=0.45)
+        axes[0, col].legend(loc='upper right', frameon=False)
+
+    fig.savefig(output_path, dpi=180)
+    plt.close(fig)
+
+
+def _convergence_rows(output_dir: Path) -> tuple[list[dict], dict[str, object]]:
+    output_path = output_dir / 'mechanistic_convergence.csv'
+    study_specs = [
+        ('mesh', 'coarse', 56, 24, 4.0),
+        ('mesh', 'reference', 64, 28, 4.0),
+        ('mesh', 'fine', 72, 32, 4.0),
+        ('time_step', 'reference_auto_dt', 64, 28, 4.0),
+        ('time_step', 'reference_half_dt', 64, 28, 8.0),
+    ]
+    geometry_specs = [
+        ('representative_folded', 2.4, 1.5),
+        ('flat_control', 0.0, 1.5),
+    ]
+
+    reference_vertices: dict[str, tuple[np.ndarray, np.ndarray, np.ndarray]] = {}
+    for geometry_label, fold_depth_mm, fold_sigma_mm in geometry_specs:
+        reference_mesh = generate_folded_strip_mesh(
+            nx=64,
+            ny=28,
+            length_mm=22.0,
+            width_mm=10.0,
+            fold_depth_mm=fold_depth_mm,
+            fold_sigma_mm=fold_sigma_mm,
+        )
+        stimulus_vertex, e1_vertex, e2_vertex = choose_auto_vertices(reference_mesh)
+        reference_vertices[geometry_label] = (
+            np.asarray(reference_mesh.vertices[stimulus_vertex], dtype=float),
+            np.asarray(reference_mesh.vertices[e1_vertex], dtype=float),
+            np.asarray(reference_mesh.vertices[e2_vertex], dtype=float),
+        )
+
+    rows: list[dict] = []
+    for study_axis, resolution_label, nx, ny, dt_scale in study_specs:
+        for geometry_label, fold_depth_mm, fold_sigma_mm in geometry_specs:
+            mesh = generate_folded_strip_mesh(
+                nx=nx,
+                ny=ny,
+                length_mm=22.0,
+                width_mm=10.0,
+                fold_depth_mm=fold_depth_mm,
+                fold_sigma_mm=fold_sigma_mm,
+            )
+            stim_coord, e1_coord, e2_coord = reference_vertices[geometry_label]
+            stimulus_vertex = int(np.argmin(np.linalg.norm(mesh.vertices - stim_coord[None, :], axis=1)))
+            e1_vertex = int(np.argmin(np.linalg.norm(mesh.vertices - e1_coord[None, :], axis=1)))
+            e2_vertex = int(np.argmin(np.linalg.norm(mesh.vertices - e2_coord[None, :], axis=1)))
+            params = MechanisticSurfaceParams(
+                final_t_end=190.0,
+                mechanistic_dt_scale=dt_scale,
+                enable_vascular_feedback=False,
+            )
+            _, _, baseline, dipole = _paired_outputs(
+                mesh,
+                params,
+                stimulus_vertex,
+                e1_vertex,
+                e2_vertex,
+            )
+            rows.append(
+                {
+                    'study_axis': study_axis,
+                    'resolution_label': resolution_label,
+                    'geometry_label': geometry_label,
+                    'nx': int(nx),
+                    'ny': int(ny),
+                    'mechanistic_dt_scale': float(dt_scale),
+                    'baseline_dt_used_s': baseline['dt_used_s'],
+                    'dipole_dt_used_s': dipole['dt_used_s'],
+                    'baseline_arrival_speed_mm_min': baseline['arrival_speed_mm_min'],
+                    'dipole_arrival_speed_mm_min': dipole['arrival_speed_mm_min'],
+                    'baseline_cross_fold_delay_s': baseline['cross_fold_delay_s'],
+                    'dipole_cross_fold_delay_s': dipole['cross_fold_delay_s'],
+                    'speed_slowdown_mm_min': _safe_difference(
+                        baseline['arrival_speed_mm_min'],
+                        dipole['arrival_speed_mm_min'],
+                    ),
+                    'delay_increase_s': _safe_difference(
+                        dipole['cross_fold_delay_s'],
+                        baseline['cross_fold_delay_s'],
+                    ),
+                }
+            )
+
+    _write_csv(output_path, rows)
+    folded_rows = [row for row in rows if row['geometry_label'] == 'representative_folded']
+    flat_rows = [row for row in rows if row['geometry_label'] == 'flat_control']
+    reference_row = next(row for row in folded_rows if row['resolution_label'] == 'reference')
+    reference_slowdown = float(reference_row['speed_slowdown_mm_min'])
+    summary = {
+        'all_folded_positive': bool(all(float(row['speed_slowdown_mm_min']) > 0.0 for row in folded_rows)),
+        'max_folded_slowdown_deviation_pct': _safe_float(
+            100.0
+            * max(abs(float(row['speed_slowdown_mm_min']) - reference_slowdown) for row in folded_rows)
+            / max(abs(reference_slowdown), 1e-6)
+        ),
+        'max_flat_abs_slowdown_mm_min': _safe_float(max(abs(float(row['speed_slowdown_mm_min'])) for row in flat_rows)),
+    }
+    return rows, summary
+
+
 def _project_vertices_2d(vertices: np.ndarray) -> np.ndarray:
     centered = np.asarray(vertices, dtype=float) - np.mean(vertices, axis=0, keepdims=True)
     _, _, vh = np.linalg.svd(centered, full_matrices=False)
@@ -484,52 +1068,77 @@ def _save_propagation_figure(output_path: Path) -> dict[str, object]:
     }
 
 
-def _save_atlas_patch_figure(patch_pair, rows: list[dict], output_path: Path) -> None:
-    atlas_projection = _project_vertices_2d(patch_pair.atlas_mesh.vertices)
+def _save_atlas_multi_patch_figure(panel, rows: list[dict], output_path: Path) -> None:
+    atlas_projection = _project_vertices_2d(panel.atlas_mesh.vertices)
     triangulation = mtri.Triangulation(
         atlas_projection[:, 0],
         atlas_projection[:, 1],
-        triangles=patch_pair.atlas_mesh.faces,
+        triangles=panel.atlas_mesh.faces,
     )
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.5), constrained_layout=True)
 
     artist = axes[0].tripcolor(
         triangulation,
-        patch_pair.atlas_mesh.sulcal_depth,
+        panel.atlas_mesh.sulcal_depth,
         shading='gouraud',
         cmap='cividis',
     )
-    axes[0].scatter(
-        atlas_projection[patch_pair.sulcal_roi_mask, 0],
-        atlas_projection[patch_pair.sulcal_roi_mask, 1],
-        s=7,
-        color='#e45756',
-        alpha=0.65,
-        label='Sulcal patch',
-    )
-    axes[0].scatter(
-        atlas_projection[patch_pair.flat_roi_mask, 0],
-        atlas_projection[patch_pair.flat_roi_mask, 1],
-        s=7,
-        color='#4c78a8',
-        alpha=0.65,
-        label='Flatter patch',
-    )
+    for mask in panel.sulcal_roi_masks:
+        axes[0].scatter(
+            atlas_projection[mask, 0],
+            atlas_projection[mask, 1],
+            s=7,
+            color='#e45756',
+            alpha=0.65,
+        )
+    for mask in panel.flat_roi_masks:
+        axes[0].scatter(
+            atlas_projection[mask, 0],
+            atlas_projection[mask, 1],
+            s=7,
+            color='#4c78a8',
+            alpha=0.65,
+        )
+
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Line2D([0], [0], marker='o', color='w', label='Sulcal patches', markerfacecolor='#e45756', markersize=8),
+        Line2D([0], [0], marker='o', color='w', label='Flatter patches', markerfacecolor='#4c78a8', markersize=8)
+    ]
+    axes[0].legend(handles=legend_elements, loc='lower left', frameon=False)
     axes[0].set_xticks([])
     axes[0].set_yticks([])
     axes[0].set_aspect('equal')
-    axes[0].legend(loc='lower left', frameon=False)
     fig.colorbar(artist, ax=axes[0], fraction=0.046, pad=0.02, label='Normalized sulcal depth')
 
-    x = np.arange(len(rows))
-    baseline = np.asarray([row['baseline_traversal_speed_mm_min'] for row in rows], dtype=float)
-    dipole = np.asarray([row['dipole_traversal_speed_mm_min'] for row in rows], dtype=float)
-    for idx, row in enumerate(rows):
-        axes[1].plot([0, 1], [baseline[idx], dipole[idx]], marker='o', linewidth=1.8, label=row['patch_label'])
-    axes[1].set_xticks([0, 1], ['No dipole', 'Sulcal dipole'])
-    axes[1].set_ylabel('Stimulus-to-downstream speed (mm/min)')
-    axes[1].grid(alpha=0.25)
-    axes[1].legend(frameon=False)
+    import pandas as pd
+    df = pd.DataFrame(rows)
+
+    sulcal_data = df[df['patch_category'] == 'sulcal']['speed_slowdown_mm_min'].values
+    flat_data = df[df['patch_category'] == 'flat']['speed_slowdown_mm_min'].values
+
+    # Create boxplots
+    axes[1].boxplot([sulcal_data, flat_data], positions=[0, 1], widths=0.4,
+                    showfliers=False, patch_artist=True,
+                    boxprops=dict(facecolor='white', color='black'),
+                    medianprops=dict(color='black'))
+
+    # Add jittered scatter points
+    def add_jitter(x_pos, data, color):
+        jitter = np.random.uniform(-0.1, 0.1, size=len(data))
+        axes[1].scatter(np.full_like(data, x_pos) + jitter, data,
+                        color=color, alpha=0.7, s=40, edgecolor='w')
+
+    add_jitter(0, sulcal_data, '#e45756')
+    add_jitter(1, flat_data, '#4c78a8')
+
+    axes[1].set_xticks([0, 1])
+    axes[1].set_xticklabels(['Sulcal', 'Flatter'])
+
+    axes[1].set_xlabel('')
+    axes[1].set_ylabel('Dipole-induced slowing (mm/min)')
+    axes[1].grid(axis='y', alpha=0.25)
+    axes[1].axhline(0.0, color='black', linewidth=0.8, alpha=0.45)
 
     fig.savefig(output_path, dpi=180)
     plt.close(fig)
@@ -561,11 +1170,14 @@ def _representative_rows(output_dir: Path) -> list[dict]:
 
 
 def _atlas_patch_rows(output_dir: Path, atlas_cache_dir: Path) -> tuple[list[dict], dict[str, object]]:
-    patch_pair = prepare_atlas_patch_pair(atlas_cache_dir, patch_radius_mm=12.0, min_separation_mm=30.0)
+    panel = prepare_atlas_multi_patch_panel(
+        atlas_cache_dir, n_sulcal=8, n_flat=8, patch_radius_mm=12.0, min_separation_mm=30.0
+    )
     base_params = MechanisticSurfaceParams(final_t_end=180.0, enable_vascular_feedback=False)
 
     rows: list[dict] = []
-    for patch in (patch_pair.sulcal_patch, patch_pair.flat_patch):
+
+    def _run_patch(patch, category: str):
         baseline_output = run_mechanistic_surface_simulation(
             patch.mesh,
             dc.replace(base_params, enable_dipole_alignment=False),
@@ -579,53 +1191,54 @@ def _atlas_patch_rows(output_dir: Path, atlas_cache_dir: Path) -> tuple[list[dic
         baseline = _compute_case_metrics(baseline_output, patch.electrode_1_vertex, patch.electrode_2_vertex)
         dipole = _compute_case_metrics(dipole_output, patch.electrode_1_vertex, patch.electrode_2_vertex)
         baseline_traversal_speed = mechanistic_surface_arrival_speed_mm_min(
-            baseline_output,
-            patch.stimulus_vertex,
-            patch.electrode_2_vertex,
-            radius_mm=1.0,
-        )
+            baseline_output, patch.stimulus_vertex, patch.electrode_2_vertex, radius_mm=1.0)
         dipole_traversal_speed = mechanistic_surface_arrival_speed_mm_min(
-            dipole_output,
-            patch.stimulus_vertex,
-            patch.electrode_2_vertex,
-            radius_mm=1.0,
-        )
+            dipole_output, patch.stimulus_vertex, patch.electrode_2_vertex, radius_mm=1.0)
+
         baseline_downstream_arrival = _safe_float(baseline_output.arrival_times[patch.electrode_2_vertex])
         dipole_downstream_arrival = _safe_float(dipole_output.arrival_times[patch.electrode_2_vertex])
-        rows.append(
-            {
-                'patch_label': patch.label,
-                'patch_vertices': patch.mesh.n_vertices,
-                'patch_faces': patch.mesh.n_faces,
-                'mean_sulcal_depth': _safe_float(np.mean(patch.mesh.sulcal_depth)),
-                'mean_thickness_mm': _safe_float(np.mean(patch.mesh.thickness)),
-                'baseline_traversal_speed_mm_min': _safe_float(baseline_traversal_speed),
-                'dipole_traversal_speed_mm_min': _safe_float(dipole_traversal_speed),
-                'baseline_downstream_arrival_s': baseline_downstream_arrival,
-                'dipole_downstream_arrival_s': dipole_downstream_arrival,
-                'baseline_inner_delay_s': baseline['cross_fold_delay_s'],
-                'dipole_inner_delay_s': dipole['cross_fold_delay_s'],
-                'speed_slowdown_mm_min': _safe_float(baseline_traversal_speed - dipole_traversal_speed),
-                'delay_increase_s': _safe_float(dipole_downstream_arrival - baseline_downstream_arrival),
-                'baseline_max_abs_potential_mV': baseline['max_abs_potential_mV'],
-                'dipole_max_abs_potential_mV': dipole['max_abs_potential_mV'],
-            }
-        )
+
+        return {
+            'patch_label': patch.label,
+            'patch_category': category,
+            'patch_vertices': patch.mesh.n_vertices,
+            'patch_faces': patch.mesh.n_faces,
+            'mean_sulcal_depth': _safe_float(np.mean(patch.mesh.sulcal_depth)),
+            'mean_thickness_mm': _safe_float(np.mean(patch.mesh.thickness)),
+            'baseline_traversal_speed_mm_min': _safe_float(baseline_traversal_speed),
+            'dipole_traversal_speed_mm_min': _safe_float(dipole_traversal_speed),
+            'baseline_downstream_arrival_s': baseline_downstream_arrival,
+            'dipole_downstream_arrival_s': dipole_downstream_arrival,
+            'baseline_inner_delay_s': baseline['cross_fold_delay_s'],
+            'dipole_inner_delay_s': dipole['cross_fold_delay_s'],
+            'speed_slowdown_mm_min': _safe_float(baseline_traversal_speed - dipole_traversal_speed) if baseline_traversal_speed and dipole_traversal_speed else 0.0,
+            'delay_increase_s': _safe_float((dipole_downstream_arrival or 0) - (baseline_downstream_arrival or 0)) if dipole_downstream_arrival and baseline_downstream_arrival else None,
+            'baseline_max_abs_potential_mV': baseline['max_abs_potential_mV'],
+            'dipole_max_abs_potential_mV': dipole['max_abs_potential_mV'],
+        }
+
+    for patch in panel.sulcal_patches:
+        rows.append(_run_patch(patch, 'sulcal'))
+    for patch in panel.flat_patches:
+        rows.append(_run_patch(patch, 'flat'))
 
     _write_csv(output_dir / 'mechanistic_atlas_patch_check.csv', rows)
     figure_path = output_dir / 'mechanistic_atlas_patch_qc.png'
-    _save_atlas_patch_figure(patch_pair, rows, figure_path)
-    sulcal_row = next(row for row in rows if row['patch_label'] == 'atlas_sulcal_patch')
-    flat_row = next(row for row in rows if row['patch_label'] == 'atlas_flat_patch')
+    _save_atlas_multi_patch_figure(panel, rows, figure_path)
+
+    sulcal_slowdowns = [float(row['speed_slowdown_mm_min']) for row in rows if row['patch_category'] == 'sulcal']
+    flat_slowdowns = [float(row['speed_slowdown_mm_min']) for row in rows if row['patch_category'] == 'flat']
+
     summary = {
-        'sulcal_patch_slowdown_mm_min': _safe_float(sulcal_row['speed_slowdown_mm_min']),
-        'flat_patch_slowdown_mm_min': _safe_float(flat_row['speed_slowdown_mm_min']),
-        'sulcal_patch_delay_increase_s': _safe_float(sulcal_row['delay_increase_s']),
-        'flat_patch_delay_increase_s': _safe_float(flat_row['delay_increase_s']),
-        'effect_preserved_on_sulcal_patch': bool(float(sulcal_row['speed_slowdown_mm_min']) > 0.0),
-        'flat_patch_effect_smaller': bool(float(sulcal_row['speed_slowdown_mm_min']) > float(flat_row['speed_slowdown_mm_min'])),
+        'n_sulcal': len(sulcal_slowdowns),
+        'n_flat': len(flat_slowdowns),
+        'mean_sulcal_patch_slowdown_mm_min': _safe_float(np.mean(sulcal_slowdowns)) if sulcal_slowdowns else 0.0,
+        'mean_flat_patch_slowdown_mm_min': _safe_float(np.mean(flat_slowdowns)) if flat_slowdowns else 0.0,
+        'effect_preserved_on_all_sulcal': bool(all(x > 0.0 for x in sulcal_slowdowns)) if sulcal_slowdowns else False,
+        'flat_effect_smaller_mean': bool(np.mean(sulcal_slowdowns) > np.mean(flat_slowdowns)) if sulcal_slowdowns and flat_slowdowns else False,
+        'sulcal_speed_slowdown_wilcoxon': _wilcoxon_greater(sulcal_slowdowns, flat_slowdowns),
         'figure_path': str(figure_path),
-        'atlas_source_dir': str(patch_pair.atlas_source_dir) if patch_pair.atlas_source_dir is not None else None,
+        'atlas_source_dir': str(panel.atlas_source_dir) if panel.atlas_source_dir is not None else None,
     }
     return rows, summary
 
@@ -743,11 +1356,18 @@ def main() -> None:
     representative_rows = _representative_rows(output_dir)
     geometry_rows, geometry_summary = _geometry_sweep_rows(output_dir)
     atlas_rows, atlas_summary = _atlas_patch_rows(output_dir, args.atlas_cache_dir.resolve())
+    sensitivity_rows, sensitivity_summary_rows, sensitivity_summary, sensitivity_figure_path = _sensitivity_rows(output_dir)
+    null_rows, null_summary, null_figure_path = _null_model_rows(output_dir)
+    waveform_trace_rows, waveform_summary_rows, waveform_summary, waveform_figure_path = _waveform_rows(output_dir)
+    convergence_rows, convergence_summary = _convergence_rows(output_dir)
     figure_path = output_dir / 'mechanistic_sulcal_slowing.png'
     representative_figure_path = output_dir / 'mechanistic_representative_summary.png'
     propagation_figure_path = output_dir / 'mechanistic_wave_propagation.png'
     _save_geometry_figure(geometry_rows, figure_path)
     _save_representative_figure(representative_rows, representative_figure_path)
+    _save_sensitivity_figure(sensitivity_rows, sensitivity_figure_path)
+    _save_null_model_figure(null_rows, null_figure_path)
+    _save_waveform_figure(waveform_trace_rows, waveform_figure_path)
     propagation_summary = _save_propagation_figure(propagation_figure_path)
     _write_table_s2_from_representative_csv(
         output_dir / 'mechanistic_representative_summary.csv',
@@ -759,9 +1379,21 @@ def main() -> None:
         'geometry_summary': geometry_summary,
         'atlas_patch_rows': atlas_rows,
         'atlas_patch_summary': atlas_summary,
+        'sensitivity_rows': sensitivity_rows,
+        'sensitivity_summary_rows': sensitivity_summary_rows,
+        'sensitivity_summary': sensitivity_summary,
+        'null_model_rows': null_rows,
+        'null_model_summary': null_summary,
+        'waveform_summary_rows': waveform_summary_rows,
+        'waveform_summary': waveform_summary,
+        'convergence_rows': convergence_rows,
+        'convergence_summary': convergence_summary,
         'figure_path': str(figure_path),
         'representative_figure_path': str(representative_figure_path),
         'propagation_figure_path': str(propagation_figure_path),
+        'sensitivity_figure_path': str(sensitivity_figure_path),
+        'null_model_figure_path': str(null_figure_path),
+        'waveform_figure_path': str(waveform_figure_path),
         'propagation_summary': propagation_summary,
         'runtime_s': float(time.perf_counter() - start),
     }
@@ -789,9 +1421,28 @@ def main() -> None:
         f"{geometry_summary['mean_delay_increase_s']:.2f} s"
     )
     print(
-        'Atlas sanity check: '
-        f"sulcal slowdown={atlas_summary['sulcal_patch_slowdown_mm_min']:.3f} mm/min, "
-        f"flat slowdown={atlas_summary['flat_patch_slowdown_mm_min']:.3f} mm/min"
+        'Atlas panel check: '
+        f"mean sulcal slowdown={atlas_summary['mean_sulcal_patch_slowdown_mm_min']:.3f} mm/min "
+        f"(n={atlas_summary['n_sulcal']}), "
+        f"mean flat slowdown={atlas_summary['mean_flat_patch_slowdown_mm_min']:.3f} mm/min "
+        f"(n={atlas_summary['n_flat']})"
+    )
+    print(
+        'Sensitivity battery: '
+        f"{sensitivity_summary['n_settings']} settings, "
+        f"folded-positive={sensitivity_summary['all_settings_folded_positive']}, "
+        f"max |flat slowdown|={sensitivity_summary['max_flat_abs_slowdown_mm_min']:.3f} mm/min"
+    )
+    print(
+        'Null models: '
+        f"aligned={null_summary['aligned_slowdown_mm_min']:.3f}, "
+        f"distance-only={null_summary['distance_only_slowdown_mm_min']:.3f}, "
+        f"scrambled={null_summary['scrambled_normals_slowdown_mm_min']:.3f} mm/min"
+    )
+    print(
+        'Convergence: '
+        f"folded-positive={convergence_summary['all_folded_positive']}, "
+        f"max |flat slowdown|={convergence_summary['max_flat_abs_slowdown_mm_min']:.3f} mm/min"
     )
 
 

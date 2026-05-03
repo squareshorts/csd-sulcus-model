@@ -38,9 +38,13 @@ class MechanisticSurfaceParams:
     ecs_depth_tortuosity_gain: float = 0.35
     ecs_thickness_tortuosity_gain: float = 0.10
     ecs_swelling_tau: float = 12.0
+    ecs_swelling_recovery_tau: float = 28.0
     ecs_swelling_volume_fraction_gain: float = 0.34
     ecs_swelling_tortuosity_gain: float = 0.28
     osmotic_swelling_gain: float = 5.0
+    osmotic_swelling_half_saturation: float = 0.06
+    activity_swelling_gain: float = 0.20
+    swelling_target_max: float = 1.10
 
     potassium_diffusivity_scale: float = 1.00
     sodium_diffusivity_scale: float = 0.82
@@ -85,6 +89,8 @@ class MechanisticSurfaceParams:
     potential_screening: float = 0.65
     dipole_screening_length_mm: float = 4.0
     dipole_cutoff_mm: float = 12.0
+    dipole_kernel_mode: str = "aligned"
+    dipole_kernel_seed: int = 13
 
     stim_radius_mm: float = 1.2
     stimulus_k_e: float = 22.0
@@ -165,8 +171,9 @@ def _dynamic_extracellular_fields(
     swelling: np.ndarray,
     params: MechanisticSurfaceParams,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    swelling_state = np.clip(swelling, 0.0, params.swelling_target_max)
     ecs_volume_fraction = ecs_volume_fraction_base * (
-        1.0 - params.ecs_swelling_volume_fraction_gain * np.clip(swelling, 0.0, 1.5)
+        1.0 - params.ecs_swelling_volume_fraction_gain * swelling_state
     )
     ecs_volume_fraction = np.clip(
         ecs_volume_fraction,
@@ -174,7 +181,7 @@ def _dynamic_extracellular_fields(
         params.ecs_volume_fraction_base,
     )
     ecs_tortuosity = ecs_tortuosity_base * (
-        1.0 + params.ecs_swelling_tortuosity_gain * np.clip(swelling, 0.0, 1.5)
+        1.0 + params.ecs_swelling_tortuosity_gain * swelling_state
     )
     ecs_tortuosity = np.clip(
         ecs_tortuosity,
@@ -309,9 +316,18 @@ def _build_dipole_interaction_matrix(
     if not params.enable_dipole_alignment:
         return sparse.csr_matrix((n_vertices, n_vertices), dtype=float)
 
+    mode = str(params.dipole_kernel_mode).strip().lower()
+    if mode not in {"aligned", "distance_only", "scrambled_normals"}:
+        raise ValueError(
+            "dipole_kernel_mode must be one of 'aligned', 'distance_only', or 'scrambled_normals'."
+        )
+
     screening_length = max(float(params.dipole_screening_length_mm), 1e-6)
     cutoff = max(float(params.dipole_cutoff_mm), screening_length)
     vertex_normals = np.asarray(operators.vertex_normals, dtype=float)
+    if mode == "scrambled_normals":
+        rng = np.random.default_rng(int(params.dipole_kernel_seed))
+        vertex_normals = vertex_normals[rng.permutation(n_vertices)]
 
     rows: list[int] = []
     cols: list[int] = []
@@ -325,8 +341,14 @@ def _build_dipole_interaction_matrix(
         edge_js = edge_js[(edge_js != i) & (distances[edge_js] > 0.0)]
         if edge_js.size == 0:
             continue
-        normal_opposition = 0.5 * (1.0 - np.sum(vertex_normals[i][None, :] * vertex_normals[edge_js], axis=1))
-        kernel = np.exp(-distances[edge_js] / screening_length) * np.clip(normal_opposition, 0.0, 1.0)
+        if mode == "distance_only":
+            orientation_weight = np.ones(edge_js.size, dtype=float)
+        else:
+            normal_opposition = 0.5 * (
+                1.0 - np.sum(vertex_normals[i][None, :] * vertex_normals[edge_js], axis=1)
+            )
+            orientation_weight = np.clip(normal_opposition, 0.0, 1.0)
+        kernel = np.exp(-distances[edge_js] / screening_length) * orientation_weight
         keep = kernel > 1e-8
         edge_js = edge_js[keep]
         kernel = kernel[keep]
@@ -657,8 +679,20 @@ def run_mechanistic_surface_simulation(
         activation = activation + dt_used * ((theta_target - activation) / max(params.activation_tau, 1e-6))
 
         osmotic_drive = np.maximum((potassium_i + sodium_i + chloride_i - intracellular_rest_osm) / intracellular_rest_osm, 0.0)
-        swelling_target = np.clip(params.osmotic_swelling_gain * osmotic_drive + 0.20 * activation, 0.0, 1.5)
-        swelling = swelling + dt_used * ((swelling_target - swelling) / max(params.ecs_swelling_tau, 1e-6))
+        osmotic_term = (
+            params.osmotic_swelling_gain
+            * osmotic_drive
+            / (osmotic_drive + max(params.osmotic_swelling_half_saturation, 1e-6))
+        )
+        activity_term = params.activity_swelling_gain * np.clip(activation, 0.0, 1.5)
+        swelling_drive = osmotic_term + activity_term
+        swelling_target = params.swelling_target_max * swelling_drive / (1.0 + swelling_drive)
+        swelling_tau = np.where(
+            swelling_target >= swelling,
+            params.ecs_swelling_tau,
+            params.ecs_swelling_recovery_tau,
+        )
+        swelling = swelling + dt_used * ((swelling_target - swelling) / np.maximum(swelling_tau, 1e-6))
 
         if params.enable_vascular_feedback:
             constriction_target = constriction_susceptibility * activation
@@ -679,7 +713,7 @@ def run_mechanistic_surface_simulation(
         np.clip(sodium_i, 2.0, 80.0, out=sodium_i)
         np.clip(chloride_i, 2.0, 80.0, out=chloride_i)
         np.clip(activation, 0.0, 1.5, out=activation)
-        np.clip(swelling, 0.0, 1.5, out=swelling)
+        np.clip(swelling, 0.0, params.swelling_target_max, out=swelling)
         np.clip(perfusion, params.min_perfusion, params.max_perfusion, out=perfusion)
         np.clip(oxygen, params.min_oxygen, params.max_oxygen, out=oxygen)
         np.clip(constriction, 0.0, 1.5, out=constriction)

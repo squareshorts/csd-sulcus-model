@@ -1,0 +1,16 @@
+parameter_name,parameter_label,parameter_value,all_folded_slower,flat_abs_slowdown_mm_min,severity_monotone,low_severity_slowdown_mm_min,representative_slowdown_mm_min,high_severity_slowdown_mm_min
+field_reference_mV,$V_0$ (mV),3.0,True,0.0,True,0.0370820669432268,0.1139140427823837,0.14312751297965542
+field_reference_mV,$V_0$ (mV),5.0,True,0.0,True,0.06611521857664071,0.16163555962908394,0.17845160267994498
+field_reference_mV,$V_0$ (mV),7.0,True,0.0,True,0.09331676150541357,0.1794901559945763,0.1838070061336432
+electrodiffusion_mobility_fraction,$m_{\mathrm{ed}}$,0.25,True,0.0,True,0.031186101416626144,0.10239260335420619,0.1278312498896197
+electrodiffusion_mobility_fraction,$m_{\mathrm{ed}}$,0.5,True,0.0,True,0.06611521857664071,0.16163555962908394,0.17845160267994498
+electrodiffusion_mobility_fraction,$m_{\mathrm{ed}}$,0.75,True,0.0,True,0.10309900654795756,0.18188749696437068,0.18215148224899114
+dipole_screening_length_mm,$\ell_d$ (mm),2.5,True,0.0,False,0.08174308208715697,0.14824292489115098,0.13394171059090976
+dipole_screening_length_mm,$\ell_d$ (mm),4.0,True,0.0,True,0.06611521857664071,0.16163555962908394,0.17845160267994498
+dipole_screening_length_mm,$\ell_d$ (mm),5.5,True,0.0,True,0.05750462032643666,0.15867084330194103,0.1924687156643312
+dipole_cutoff_mm,$d_c$ (mm),8.0,True,0.0,False,0.11102205441307467,0.17489678666721709,0.1668143711408474
+dipole_cutoff_mm,$d_c$ (mm),12.0,True,0.0,True,0.06611521857664071,0.16163555962908394,0.17845160267994498
+dipole_cutoff_mm,$d_c$ (mm),16.0,True,0.0,True,0.05028197095786169,0.13848763602426173,0.16180081943295255
+dipole_field_gain,$\gamma_d$ (a.u.),1.0,True,0.0,True,0.043016046278510967,0.10802698758987495,0.1279695355504109
+dipole_field_gain,$\gamma_d$ (a.u.),1.5,True,0.0,True,0.06611521857664071,0.16163555962908394,0.17845160267994498
+dipole_field_gain,$\gamma_d$ (a.u.),2.0,True,0.0,False,0.08737579866795242,0.1974331070486426,0.19492948059726922

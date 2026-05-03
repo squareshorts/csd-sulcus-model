@@ -1,0 +1,53 @@
+% Recovered from outputs/surface_mechanistic_study/mechanistic_atlas_patch_check.csv.
+% Center vertices were reconstructed from prepare_atlas_multi_patch_panel using the cached fsaverage6 atlas.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Individual atlas-patch sanity-check results for the mechanistic surface study. Slowdown is no-dipole speed minus dipole-enabled speed.}
+\label{tab:atlas-patch-individual}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llcrrrrr@{}}
+\toprule
+Patch & Center vertex & Category & Mean depth & No-dipole speed & Dipole speed & Slowdown & Delay increase \\
+ & & & (norm.) & (mm/min) & (mm/min) & (mm/min) & (s) \\
+\midrule
+atlas\_sulcal\_patch\_0 & 34141 & Sulcal & 0.733 & 7.682 & 7.545 & 0.137 & 2.78 \\
+atlas\_sulcal\_patch\_1 & 30602 & Sulcal & 0.519 & 8.308 & 8.269 & 0.039 & 0.74 \\
+atlas\_sulcal\_patch\_2 & 30880 & Sulcal & 0.627 & 8.828 & 8.560 & 0.268 & 4.64 \\
+atlas\_sulcal\_patch\_3 & 3427 & Sulcal & 0.472 & 8.333 & 8.288 & 0.044 & 0.85 \\
+atlas\_sulcal\_patch\_4 & 29805 & Sulcal & 0.487 & 8.016 & 7.916 & 0.100 & 1.97 \\
+atlas\_sulcal\_patch\_5 & 40765 & Sulcal & 0.555 & 7.165 & 7.088 & 0.076 & 1.68 \\
+atlas\_sulcal\_patch\_6 & 9633 & Sulcal & 0.486 & 7.862 & 7.862 & 0.000 & 0.00 \\
+atlas\_sulcal\_patch\_7 & 33410 & Sulcal & 0.470 & 8.554 & 8.488 & 0.066 & 1.23 \\
+atlas\_flat\_patch\_0 & 30290 & Flatter & 0.001 & 7.707 & 7.803 & -0.096 & -0.98 \\
+atlas\_flat\_patch\_1 & 37163 & Flatter & 0.014 & 8.643 & 8.731 & -0.088 & -1.61 \\
+atlas\_flat\_patch\_2 & 31588 & Flatter & 0.012 & 7.706 & 8.030 & -0.324 & -5.63 \\
+atlas\_flat\_patch\_3 & 3107 & Flatter & 0.000 & 8.534 & 8.462 & 0.072 & 1.37 \\
+atlas\_flat\_patch\_4 & 22984 & Flatter & 0.000 & 8.459 & 8.618 & -0.159 & -2.95 \\
+atlas\_flat\_patch\_5 & 27065 & Flatter & 0.002 & 8.262 & 8.139 & 0.122 & 2.41 \\
+atlas\_flat\_patch\_6 & 5771 & Flatter & 0.096 & 8.327 & 8.612 & -0.286 & -5.06 \\
+atlas\_flat\_patch\_7 & 17765 & Flatter & 0.005 & 8.673 & 8.937 & -0.265 & -4.74 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Summary statistics for the atlas-patch sanity check. Values are mean $\pm$ SD unless otherwise stated; bootstrap intervals are percentile 95\% CIs for the category mean.}
+\label{tab:atlas-patch-summary}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lclllll@{}}
+\toprule
+Category & $N$ & Mean depth & No-dipole speed & Dipole speed & Slowdown & Delay increase \\
+ & & (norm.) & (mm/min) & (mm/min) & mean $\pm$ SD; SE; 95\% CI & mean $\pm$ SD; SE; 95\% CI \\
+\midrule
+Sulcal & 8 & $0.544\pm0.093$ & $8.093\pm0.527$ & $8.002\pm0.503$ & $0.091\pm0.082$; 0.029; [0.045, 0.149] & $1.74\pm1.45$; 0.51; [0.90, 2.76] \\
+Flatter & 8 & $0.016\pm0.033$ & $8.289\pm0.386$ & $8.417\pm0.388$ & $-0.128\pm0.164$; 0.058; [-0.229, -0.020] & $-2.15\pm3.00$; 1.06; [-4.04, -0.13] \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\paragraph{Replacement text for Section 3.4.}
+The atlas multi-patch analysis preserved the sign of the effect beyond the synthetic strip while remaining a geometry-level sanity check rather than subject-specific validation. Across 8 fsaverage6 sulcal patches, enabling the dipole term reduced stimulus-to-downstream traversal speed from 8.093 to 8.002~mm/min on average, giving a mean slowdown of 0.091~mm/min (SD 0.082; SE 0.029; 95\% bootstrap CI 0.045--0.149) and a mean downstream delay increase of 1.74~s (SD 1.45; SE 0.51; 95\% CI 0.90--2.76). The sulcal patch effect was non-negative in all 8 patches and positive in 7 of 8. Across 8 matched flatter patches, the mean effect was inverted: no-dipole speed was 8.289~mm/min, dipole-enabled speed was 8.417~mm/min, mean slowdown was -0.128~mm/min (SD 0.164; SE 0.058; 95\% CI -0.229 to -0.020), and mean delay increase was -2.15~s (SD 3.00; SE 1.06; 95\% CI -4.04 to -0.13). A descriptive simulation-level exact label-permutation comparison between sulcal and flatter patches gave a mean category difference of 0.219~mm/min for slowdown ($p=0.0050$) and 3.89~s for delay increase ($p=0.0065$). These comparisons support geometry-specific expression of the dipole-alignment term, but they should not be read as population-level biological inference.

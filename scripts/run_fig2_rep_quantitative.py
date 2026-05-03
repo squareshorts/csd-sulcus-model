@@ -41,10 +41,10 @@ DISPLAY_VALUES = {
         "ve_delta": "+0.51 mV",
     },
     "flat_control": {
-        "speed_no_dipole": "3.623 mm/min",
-        "speed_dipole": "3.623 mm/min",
-        "delay_no_dipole": "64.30 s",
-        "delay_dipole": "64.30 s",
+        "speed_no_dipole": "3.375 mm/min",
+        "speed_dipole": "3.375 mm/min",
+        "delay_no_dipole": "69.02 s",
+        "delay_dipole": "69.02 s",
     },
 }
 

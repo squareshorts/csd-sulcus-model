@@ -1,0 +1,26 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+pytest-cache-files-*/
+
+# Local/vendor scratch
+.vendor/
+surface-prep-*/
+
+# LaTeX build byproducts
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.log
+*.out
+*.synctex.gz
+
+# Atlas/download caches and ad hoc rerun directories
+outputs/atlas_cache/
+outputs/surface_mechanistic_study_hardened/
+outputs/surface_representative_after_em/
+outputs/surface_representative_dev_marlon_full/
+outputs/surface_representative_dev_marlon_quick/

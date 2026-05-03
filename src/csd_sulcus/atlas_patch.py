@@ -32,6 +32,16 @@ class AtlasPatchPair:
     flat_roi_mask: np.ndarray
     atlas_source_dir: Path | None
 
+
+@dataclass(frozen=True)
+class AtlasMultiPatchPanel:
+    atlas_mesh: SurfaceMesh
+    sulcal_patches: list[AtlasPatch]
+    flat_patches: list[AtlasPatch]
+    sulcal_roi_masks: list[np.ndarray]
+    flat_roi_masks: list[np.ndarray]
+    atlas_source_dir: Path | None
+
 def load_fsaverage10k_left_mesh(cache_dir: str | Path) -> tuple[SurfaceMesh, Path]:
     try:
         with warnings.catch_warnings():
@@ -205,6 +215,56 @@ def choose_patch_centers(
     return sulcal_center, flat_center, operators.graph
 
 
+def choose_multi_patch_centers(
+    mesh: SurfaceMesh,
+    *,
+    n_sulcal: int = 5,
+    n_flat: int = 5,
+    min_separation_mm: float = 30.0,
+    flat_quantile: float = 0.25,
+) -> tuple[list[int], list[int], np.ndarray]:
+    operators = build_surface_operators(mesh, d_parallel=1.0, d_perp=1.0)
+    graph = operators.graph
+    depth = np.asarray(mesh.sulcal_depth, dtype=float)
+    thickness = np.asarray(mesh.thickness, dtype=float)
+
+    sulcal_centers = []
+    available_mask = np.ones(mesh.n_vertices, dtype=bool)
+
+    for _ in range(n_sulcal):
+        masked_depth = np.where(available_mask, depth, -np.inf)
+        if not np.any(available_mask) or np.all(masked_depth == -np.inf):
+            break
+        center = int(np.argmax(masked_depth))
+        sulcal_centers.append(center)
+
+        distances = np.asarray(csgraph.dijkstra(graph, directed=False, indices=center), dtype=float)
+        available_mask &= (distances >= min_separation_mm)
+
+    flat_centers = []
+    flat_threshold = float(np.quantile(depth, flat_quantile))
+    thickness_scale = max(float(np.nanstd(thickness)), 1e-6)
+
+    available_mask = np.ones(mesh.n_vertices, dtype=bool)
+    for center in sulcal_centers:
+        dist = np.asarray(csgraph.dijkstra(graph, directed=False, indices=center), dtype=float)
+        available_mask &= (dist >= min_separation_mm)
+
+    for _ in range(n_flat):
+        valid = available_mask & (depth <= flat_threshold)
+        if not np.any(valid):
+            break
+
+        score = np.where(valid, depth + 0.20 * np.abs(thickness - float(np.mean(thickness))) / thickness_scale, np.inf)
+        center = int(np.argmin(score))
+        flat_centers.append(center)
+
+        dist = np.asarray(csgraph.dijkstra(graph, directed=False, indices=center), dtype=float)
+        available_mask &= (dist >= min_separation_mm)
+
+    return sulcal_centers, flat_centers, graph
+
+
 def grow_patch(graph, center_idx: int, radius_mm: float) -> tuple[np.ndarray, np.ndarray]:
     distances = np.asarray(csgraph.dijkstra(graph, directed=False, indices=int(center_idx)), dtype=float)
     return np.asarray(distances <= float(radius_mm), dtype=bool), distances
@@ -232,6 +292,45 @@ def extract_patch_pair_from_mesh(
     )
 
 
+def extract_multi_patch_panel_from_mesh(
+    atlas_mesh: SurfaceMesh,
+    *,
+    n_sulcal: int = 5,
+    n_flat: int = 5,
+    patch_radius_mm: float = 12.0,
+    min_separation_mm: float = 30.0,
+    atlas_source_dir: str | Path | None = None,
+) -> AtlasMultiPatchPanel:
+    sulcal_centers, flat_centers, graph = choose_multi_patch_centers(
+        atlas_mesh, n_sulcal=n_sulcal, n_flat=n_flat, min_separation_mm=min_separation_mm
+    )
+
+    sulcal_patches = []
+    sulcal_roi_masks = []
+    for i, center in enumerate(sulcal_centers):
+        roi_mask, _ = grow_patch(graph, center, patch_radius_mm)
+        patch = _extract_submesh(atlas_mesh, roi_mask, f'atlas_sulcal_patch_{i}', center)
+        sulcal_patches.append(patch)
+        sulcal_roi_masks.append(roi_mask)
+
+    flat_patches = []
+    flat_roi_masks = []
+    for i, center in enumerate(flat_centers):
+        roi_mask, _ = grow_patch(graph, center, patch_radius_mm)
+        patch = _extract_submesh(atlas_mesh, roi_mask, f'atlas_flat_patch_{i}', center)
+        flat_patches.append(patch)
+        flat_roi_masks.append(roi_mask)
+
+    return AtlasMultiPatchPanel(
+        atlas_mesh=atlas_mesh,
+        sulcal_patches=sulcal_patches,
+        flat_patches=flat_patches,
+        sulcal_roi_masks=sulcal_roi_masks,
+        flat_roi_masks=flat_roi_masks,
+        atlas_source_dir=None if atlas_source_dir is None else Path(atlas_source_dir),
+    )
+
+
 def prepare_atlas_patch_pair(
     cache_dir: str | Path,
     *,
@@ -241,6 +340,25 @@ def prepare_atlas_patch_pair(
     atlas_mesh, atlas_source_dir = load_fsaverage10k_left_mesh(cache_dir)
     return extract_patch_pair_from_mesh(
         atlas_mesh,
+        patch_radius_mm=patch_radius_mm,
+        min_separation_mm=min_separation_mm,
+        atlas_source_dir=atlas_source_dir,
+    )
+
+
+def prepare_atlas_multi_patch_panel(
+    cache_dir: str | Path,
+    *,
+    n_sulcal: int = 5,
+    n_flat: int = 5,
+    patch_radius_mm: float = 12.0,
+    min_separation_mm: float = 30.0,
+) -> AtlasMultiPatchPanel:
+    atlas_mesh, atlas_source_dir = load_fsaverage10k_left_mesh(cache_dir)
+    return extract_multi_patch_panel_from_mesh(
+        atlas_mesh,
+        n_sulcal=n_sulcal,
+        n_flat=n_flat,
         patch_radius_mm=patch_radius_mm,
         min_separation_mm=min_separation_mm,
         atlas_source_dir=atlas_source_dir,

@@ -30,15 +30,15 @@ FIGURE_TITLE = "Quantitative readout of the representative folded-surface slowdo
 
 DISPLAY_VALUES = {
     "representative": {
-        "speed_no_dipole": "2.558 mm/min",
-        "speed_dipole": "2.476 mm/min",
-        "speed_delta": "-0.082 mm/min (-3.21%)",
-        "delay_no_dipole": "130.5 s",
-        "delay_dipole": "134.7 s",
-        "delay_delta": "+4.2 s",
-        "ve_no_dipole": "18.99 mV",
-        "ve_dipole": "19.50 mV",
-        "ve_delta": "+0.51 mV",
+        "speed_no_dipole": "2.609 mm/min",
+        "speed_dipole": "2.537 mm/min",
+        "speed_delta": "-0.072 mm/min (-2.77%)",
+        "delay_no_dipole": "128.0 s",
+        "delay_dipole": "131.4 s",
+        "delay_delta": "+3.4 s",
+        "ve_no_dipole": "15.43 mV",
+        "ve_dipole": "16.38 mV",
+        "ve_delta": "+0.95 mV",
     },
     "flat_control": {
         "speed_no_dipole": "3.375 mm/min",
@@ -321,9 +321,9 @@ def _panel_c(parent_spec, summary: dict[str, object]):
     ax.plot([0.04, 0.96], [0.82, 0.82], color="0.75", lw=0.8)
 
     rows = [
-        ("Cross-fold speed", "2.558 mm/min", "2.476 mm/min", "-0.082 mm/min (-3.21%)"),
-        ("E1-E2 delay", "130.5 s", "134.7 s", "+4.2 s"),
-        ("Max |Ve|", "18.99 mV", "19.50 mV", "+0.51 mV"),
+        ("Cross-fold speed", "2.609 mm/min", "2.537 mm/min", "-0.072 mm/min (-2.77%)"),
+        ("E1-E2 delay", "128.0 s", "131.4 s", "+3.4 s"),
+        ("Max |Ve|", "15.43 mV", "16.38 mV", "+0.95 mV"),
     ]
     y_positions = [0.68, 0.52, 0.36]
     for (label, no_val, dip_val, delta_val), y in zip(rows, y_positions):

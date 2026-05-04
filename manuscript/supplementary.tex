@@ -27,28 +27,28 @@ This supplement collects manuscript-adjacent details that are useful for review 
 
 \begin{table}[t]
 \centering
-\caption{Full paired geometry sweep for the mechanistic surface electrodiffusion model. Each row compares the same geometry with dipole alignment disabled or enabled. The flat control is included as an internal specificity check and shows zero slowing.}
+\caption{Full paired geometry sweep for the mechanistic surface electrodiffusion model. Each row compares the same geometry with dipole alignment disabled or enabled on the standardized sweep mesh. The flat control is included as an internal specificity check and shows zero slowing. The depth 2.4~mm, $\sigma=1.5$~mm sweep row is not the exact higher-resolution representative run, which is reported separately in Table~\ref{tab:representative_metrics}.}
 \label{tab:geometry_sweep}
 \scriptsize
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}rrrrrrrrrrr@{}}
+\begin{tabular}{@{}rrrrrrrrrrrrr@{}}
 \toprule
-Depth (mm) & $\sigma$ (mm) & Severity & Baseline speed & Dipole speed & Slowdown & Baseline delay & Dipole delay & Delay increase & Baseline $|V_e|$ & Dipole $|V_e|$ \\
- &  &  & (mm/min) & (mm/min) & (mm/min) & (s) & (s) & (s) & (mV) & (mV) \\
+Depth (mm) & $\sigma$ (mm) & Severity & Vertices & Faces & Baseline speed & Dipole speed & Slowdown & Baseline delay & Dipole delay & Delay increase & Baseline $|V_e|$ & Dipole $|V_e|$ \\
+ &  &  &  &  & (mm/min) & (mm/min) & (mm/min) & (s) & (s) & (s) & (mV) & (mV) \\
 \midrule
-0.0 & 1.5 & 0.000 & 3.623 & 3.623 & 0.000 & 64.3 & 64.3 & 0.0 & 19.43 & 19.43 \\
-1.2 & 1.1 & 1.091 & 2.355 & 2.259 & 0.096 & 135.1 & 141.5 & 6.4 & 21.88 & 21.81 \\
-1.2 & 1.5 & 0.800 & 2.368 & 2.239 & 0.128 & 130.3 & 139.9 & 9.6 & 21.54 & 21.68 \\
-1.2 & 1.9 & 0.632 & 2.415 & 2.337 & 0.078 & 124.8 & 128.9 & 4.1 & 21.09 & 21.24 \\
-1.8 & 1.1 & 1.636 & 2.603 & 2.485 & 0.118 & 135.2 & 141.8 & 6.6 & 22.11 & 22.01 \\
-1.8 & 1.5 & 1.200 & 2.554 & 2.415 & 0.140 & 130.0 & 139.4 & 9.3 & 21.65 & 21.80 \\
-1.8 & 1.9 & 0.947 & 2.556 & 2.439 & 0.117 & 124.5 & 130.4 & 5.9 & 21.14 & 21.03 \\
-2.4 & 1.1 & 2.182 & 2.923 & 2.783 & 0.140 & 135.1 & 142.2 & 7.0 & 22.29 & 22.14 \\
-2.4 & 1.5 & 1.600 & 2.802 & 2.646 & 0.156 & 129.8 & 138.6 & 8.8 & 21.75 & 21.90 \\
-2.4 & 1.9 & 1.263 & 2.736 & 2.661 & 0.075 & 124.1 & 127.5 & 3.4 & 21.23 & 21.37 \\
-3.0 & 1.1 & 2.727 & 3.287 & 3.129 & 0.158 & 135.1 & 142.2 & 7.0 & 22.44 & 22.18 \\
-3.0 & 1.5 & 2.000 & 3.071 & 2.833 & 0.238 & 129.5 & 141.8 & 12.3 & 21.85 & 21.66 \\
-3.0 & 1.9 & 1.579 & 2.898 & 2.816 & 0.082 & 123.6 & 126.8 & 3.2 & 21.32 & 21.45 \\
+0.0 & 1.5 & 0.000 & 1248 & 2346 & 3.375 & 3.375 & 0.000 & 69.0 & 69.0 & 0.0 & 15.11 & 15.11 \\
+1.2 & 1.1 & 1.091 & 1248 & 2346 & 2.396 & 2.273 & 0.123 & 132.7 & 139.9 & 7.2 & 17.22 & 17.69 \\
+1.2 & 1.5 & 0.800 & 1248 & 2346 & 2.421 & 2.276 & 0.145 & 127.6 & 136.9 & 9.3 & 17.06 & 17.69 \\
+1.2 & 1.9 & 0.632 & 1248 & 2346 & 2.476 & 2.410 & 0.066 & 121.9 & 125.2 & 3.3 & 16.87 & 17.37 \\
+1.8 & 1.1 & 1.636 & 1248 & 2346 & 2.653 & 2.512 & 0.141 & 132.7 & 140.4 & 7.7 & 17.36 & 17.83 \\
+1.8 & 1.5 & 1.200 & 1248 & 2346 & 2.610 & 2.456 & 0.154 & 127.4 & 136.1 & 8.7 & 17.16 & 17.80 \\
+1.8 & 1.9 & 0.947 & 1248 & 2346 & 2.626 & 2.524 & 0.101 & 121.6 & 126.4 & 4.8 & 16.92 & 17.02 \\
+2.4 & 1.1 & 2.182 & 1248 & 2346 & 2.979 & 2.816 & 0.163 & 132.7 & 140.6 & 7.9 & 17.51 & 17.89 \\
+2.4 & 1.5 & 1.600 & 1248 & 2346 & 2.865 & 2.703 & 0.162 & 127.1 & 135.1 & 8.0 & 17.25 & 17.91 \\
+2.4 & 1.9 & 1.263 & 1248 & 2346 & 2.806 & 2.741 & 0.065 & 121.1 & 123.9 & 2.8 & 16.99 & 17.54 \\
+3.0 & 1.1 & 2.727 & 1248 & 2346 & 3.352 & 3.174 & 0.178 & 132.6 & 140.6 & 8.0 & 17.64 & 17.89 \\
+3.0 & 1.5 & 2.000 & 1248 & 2346 & 3.140 & 2.872 & 0.268 & 126.7 & 138.2 & 11.4 & 17.35 & 17.58 \\
+3.0 & 1.9 & 1.579 & 1248 & 2346 & 2.971 & 2.900 & 0.070 & 120.6 & 123.2 & 2.6 & 17.08 & 17.65 \\
 \bottomrule
 \end{tabular}%
 }
@@ -64,9 +64,9 @@ Depth (mm) & $\sigma$ (mm) & Severity & Baseline speed & Dipole speed & Slowdown
 \toprule
 Case & $dt$ (s) & Speed (mm/min) & E1 arrival (s) & E2 arrival (s) & Delay (s) & Max $|V_e|$ (mV) & Max $K_e$ (mM) & Max swelling & Min oxygen & Min perfusion \\
 \midrule
-Baseline mechanistic & 0.04996995735874618 & 2.5582349901822656 & 30.681553818270157 & 161.20308243931518 & 130.52152862104504 & 18.987306193669685 & 35.6329071567077 & 1.4998735073093261 & 1.0 & 0.6 \\
-Dipole-aligned mechanistic & 0.04996995735874618 & 2.475787705816325 & 30.681553818270157 & 165.3505889000911 & 134.66903508182097 & 19.50089527429308 & 35.61903013535566 & 1.4998731422865321 & 1.0 & 0.6 \\
-Full coupled sensitivity & 0.04996995735874618 & 3.546505127010437 & 30.431704031476425 & 124.52513373799549 & 94.09342970651906 & 12.95984978092811 & 32.865620644529656 & 1.4998601120671369 & 0.2 & 0.25 \\
+Baseline mechanistic & 0.04996995735874618 & 2.6091699831548576 & 31.431103178651348 & 159.40416397440032 & 127.97306079574898 & 15.433485430844861 & 31.52141772375073 & 0.8949639642825417 & 1.0 & 0.6 \\
+Dipole-aligned mechanistic & 0.04996995735874618 & 2.5368718587402426 & 31.431103178651348 & 162.8520910321538 & 131.42098785350245 & 16.384820032184784 & 31.504237947379163 & 0.8949607589870853 & 1.0 & 0.6 \\
+Full coupled sensitivity & 0.04996995735874618 & 3.5922541853540277 & 31.181253391857616 & 124.07540412176677 & 92.89415072990914 & 11.4426267313779 & 31.440285951723173 & 0.8948427323094323 & 0.2 & 0.25 \\
 \bottomrule
 \end{tabular}%
 }

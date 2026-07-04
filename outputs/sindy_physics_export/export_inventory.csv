@@ -1,0 +1,6 @@
+condition,has_metadata,has_geometry,has_snapshots,has_regression,has_block_summary,n_snapshots,n_regression_rows,alignment_passed,wavefront_present,missing_cols,k_min,k_max,v_min,v_max,phi_min,phi_max
+flat_no_dipole,True,True,True,True,True,150,200000,True,True,,3.5,46.07054034338931,-74.34443899396732,-12.346270646798406,-7.91885428719409,1.0803714426778277
+folded_dipole_aligned,True,True,True,True,True,150,200000,True,True,,3.5,46.12469279417667,-74.34443899396732,-12.345197262662824,-7.666122452719416,1.088496101088123
+folded_distance_only_null,True,True,True,True,True,150,200000,True,True,,3.5,46.094082528702295,-74.34443899396732,-12.345363576248513,-7.638687923808804,1.1336329234565492
+folded_no_dipole,True,True,True,True,True,150,200000,True,True,,3.5,46.11172929945415,-74.34443899396732,-12.345092840745922,-8.616124062802818,1.0830851105332504
+folded_scrambled_normal_null,True,True,True,True,True,150,200000,True,True,,3.5,46.10570710332392,-74.34443899396732,-12.345103756779196,-7.626247620375283,1.1416858982164912

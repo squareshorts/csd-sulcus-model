@@ -286,7 +286,9 @@ def _ion_transport_rhs(
     d_perp: np.ndarray,
     electric_potential: np.ndarray,
     params: MechanisticSurfaceParams,
-) -> np.ndarray:
+    *,
+    return_components: bool = False,
+) -> np.ndarray | tuple[np.ndarray, np.ndarray, np.ndarray]:
     edge_conductivity = _edge_conductivity(operators, d_parallel, d_perp, diffusivity_scale)
     diffusive_flux = (
         operators.base_edge_weights
@@ -305,7 +307,11 @@ def _ion_transport_rhs(
         * concentration_edge
         * potential_drop
     )
-    return rhs + _edge_flux_divergence(operators, drift_flux)
+    drift_div = _edge_flux_divergence(operators, drift_flux)
+    total_rhs = rhs + drift_div
+    if return_components:
+        return total_rhs, rhs, drift_div
+    return total_rhs
 
 
 def _build_dipole_interaction_matrix(
@@ -496,6 +502,7 @@ def run_mechanistic_surface_simulation(
     *,
     stimulus_vertex: int,
     snapshot_times: Sequence[float] = (),
+    sindy_exporter=None,
 ) -> MechanisticSurfaceSimulationOutput:
     (
         d_parallel_base,
@@ -629,16 +636,29 @@ def run_mechanistic_surface_simulation(
             params,
         )
 
-        k_transport = _ion_transport_rhs(
-            potassium_e,
-            1.0,
-            params.potassium_diffusivity_scale,
-            operators,
-            d_parallel,
-            d_perp,
-            electric_potential,
-            params,
-        )
+        if sindy_exporter is not None:
+            k_transport, k_diffusion, k_electrodiffusion = _ion_transport_rhs(
+                potassium_e,
+                1.0,
+                params.potassium_diffusivity_scale,
+                operators,
+                d_parallel,
+                d_perp,
+                electric_potential,
+                params,
+                return_components=True
+            )
+        else:
+            k_transport = _ion_transport_rhs(
+                potassium_e,
+                1.0,
+                params.potassium_diffusivity_scale,
+                operators,
+                d_parallel,
+                d_perp,
+                electric_potential,
+                params,
+            )
         na_transport = _ion_transport_rhs(
             sodium_e,
             1.0,
@@ -665,6 +685,37 @@ def run_mechanistic_surface_simulation(
         k_membrane = params.membrane_flux_scale * delta_i_k - 2.0 * params.pump_flux_scale * delta_pump
         na_membrane = params.membrane_flux_scale * delta_i_na + 3.0 * params.pump_flux_scale * delta_pump
         cl_membrane = -params.membrane_flux_scale * delta_i_cl
+
+        if sindy_exporter is not None:
+            # Capture step perfectly aligned in time (O(dt) synchronization)
+            k_reaction = k_membrane / alpha
+            # Calculate pure geometric targets
+            geometric_flux = operators.base_edge_weights * (potassium_e[operators.edge_i] - potassium_e[operators.edge_j])
+            lap_k_e = _edge_flux_divergence(operators, geometric_flux)
+            drift_geometric = operators.base_edge_weights * (0.5 * (potassium_e[operators.edge_i] + potassium_e[operators.edge_j])) * (electric_potential[operators.edge_i] - electric_potential[operators.edge_j])
+            div_k_grad_phi = _edge_flux_divergence(operators, drift_geometric)
+
+            state = {
+                'K_e': potassium_e.copy(),
+                'V_m': membrane_voltage_mv.copy(),
+                'theta': activation.copy(),
+                'alpha': alpha.copy(),
+                'phi': electric_potential.copy(),
+                'Na_e': sodium_e.copy(),
+                'Cl_e': chloride_e.copy(),
+                'lambda_tortuosity': np.sqrt(1.0 / np.maximum(d_parallel, 1e-6)).copy(), # approximation or pass both
+                'wavefront_mask': (membrane_voltage_mv >= -30.0) & (membrane_voltage_mv <= -10.0),
+                'stimulus_mask': stimulus_mask
+            }
+            rhs = {
+                'reaction_rhs_K_e': k_reaction.copy(),
+                'diffusion_rhs_K_e': k_diffusion.copy(),
+                'electrodiffusion_rhs_K_e': k_electrodiffusion.copy(),
+                'total_rhs_K_e': (k_transport + k_reaction).copy(),
+                'lap_K_e': lap_k_e,
+                'div_K_grad_phi': div_k_grad_phi
+            }
+            sindy_exporter.capture_step(step, time_s, state, rhs, mesh)
 
         potassium_e = potassium_e + dt_used * (k_transport + k_membrane / alpha)
         sodium_e = sodium_e + dt_used * (na_transport + na_membrane / alpha)

@@ -3,9 +3,12 @@ README.md
 pyproject.toml
 src/csd_sulcus/__init__.py
 src/csd_sulcus/analysis.py
+src/csd_sulcus/atlas_patch.py
 src/csd_sulcus/model.py
 src/csd_sulcus/plotting.py
+src/csd_sulcus/sindy_export.py
 src/csd_sulcus/surface_io.py
+src/csd_sulcus/surface_mechanistic.py
 src/csd_sulcus/surface_model.py
 src/csd_sulcus/surface_ops.py
 src/csd_sulcus/surface_prep.py
@@ -14,6 +17,9 @@ src/csd_sulcus_model.egg-info/SOURCES.txt
 src/csd_sulcus_model.egg-info/dependency_links.txt
 src/csd_sulcus_model.egg-info/requires.txt
 src/csd_sulcus_model.egg-info/top_level.txt
+tests/test_atlas_patch.py
 tests/test_study.py
+tests/test_surface_mechanistic.py
 tests/test_surface_model.py
 tests/test_surface_prep.py
+tests/test_surface_representative.py

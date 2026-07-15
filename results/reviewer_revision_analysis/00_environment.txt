@@ -1,0 +1,44 @@
+Captured UTC: 2026-07-14T16:05:38.716144+00:00
+Git branch: export/sindy-physics-fields
+Git commit: 4996a1065f65c7b9dc7f758561a2fbeadc3ca34d
+Git status before analysis (captured during initial reconnaissance):
+ M manuscript/figures/fig2_rep_quantitative.pdf
+ M manuscript/figures/fig2_rep_quantitative.png
+ M scripts/run_fig2_rep_quantitative.py
+ M src/csd_sulcus_model.egg-info/PKG-INFO
+ M src/csd_sulcus_model.egg-info/SOURCES.txt
+ M src/csd_sulcus_model.egg-info/dependency_links.txt
+ M src/csd_sulcus_model.egg-info/requires.txt
+ M src/csd_sulcus_model.egg-info/top_level.txt
+?? outputs/sindy_physics_export/flat_no_dipole/
+?? outputs/sindy_physics_export/folded_dipole_aligned/
+?? outputs/sindy_physics_export/folded_distance_only_null/
+?? outputs/sindy_physics_export/folded_no_dipole/
+?? outputs/sindy_physics_export/folded_scrambled_normal_null/
+?? uv.lock
+Git status at driver start:
+M manuscript/figures/fig2_rep_quantitative.pdf
+ M manuscript/figures/fig2_rep_quantitative.png
+ M scripts/run_fig2_rep_quantitative.py
+ M src/csd_sulcus_model.egg-info/PKG-INFO
+ M src/csd_sulcus_model.egg-info/SOURCES.txt
+ M src/csd_sulcus_model.egg-info/dependency_links.txt
+ M src/csd_sulcus_model.egg-info/requires.txt
+ M src/csd_sulcus_model.egg-info/top_level.txt
+?? outputs/sindy_physics_export/flat_no_dipole/
+?? outputs/sindy_physics_export/folded_dipole_aligned/
+?? outputs/sindy_physics_export/folded_distance_only_null/
+?? outputs/sindy_physics_export/folded_no_dipole/
+?? outputs/sindy_physics_export/folded_scrambled_normal_null/
+?? results/
+?? scripts/reviewer_revision_analysis/
+?? uv.lock
+Python: 3.11.15 (main, Jun  2 2026, 22:29:49) [MSC v.1944 64 bit (AMD64)]
+Executable: C:\work\CSD\.venv\Scripts\python.exe
+Packages: {"matplotlib": "3.11.0", "nibabel": "not installed", "nilearn": "not installed", "numpy": "2.4.6", "pytest": "not installed", "scipy": "1.17.1"}
+Operating system: Windows-10-10.0.26200-SP0
+Processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+Logical CPUs: 22
+Physical memory bytes: 33837957120
+GPU inventory: NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB, 591.74
+Fixed seed: 20260714

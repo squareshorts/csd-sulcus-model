@@ -1,0 +1,26 @@
+{
+  "display_time_rule": "25%, 50%, and 75% of the no-dipole E1-center to E2-center traversal interval; nearest saved 0.5 s snapshot",
+  "requested_times_s": [
+    63.42436837758859,
+    95.41763357652584,
+    127.41089877546307
+  ],
+  "actual_times_s": [
+    63.511815802966396,
+    95.49258851256396,
+    127.52333117952026
+  ],
+  "matched_map_coordinates": "native x-y coordinates projected to plan view; both axes in mm; z omitted",
+  "arrival_map_coordinates": "native x-y plan-view projection in mm",
+  "kymograph_space": "unfolded cumulative 3D edge length along a fixed-x full cross-fold mesh path, mm",
+  "path_plot_space": "same unfolded full cross-fold path distance, mm",
+  "difference_sign": "dipole aligned minus no dipole; positive arrival difference means later under dipole alignment",
+  "paired_absolute_color_limits_mM": [
+    3.934320167951411,
+    40.49849288072692
+  ],
+  "difference_color_limit_mM": [
+    -6.369803552639517,
+    6.369803552639517
+  ]
+}

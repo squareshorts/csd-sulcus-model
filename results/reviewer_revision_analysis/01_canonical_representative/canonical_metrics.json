@@ -1,0 +1,48 @@
+{
+  "conditions": [
+    {
+      "condition": "no_dipole",
+      "dt_used_s": 0.04996995735874618,
+      "geodesic_distance_mm": 5.566144315618666,
+      "roi_e1_arrival_s": 31.406118199971974,
+      "roi_e2_arrival_s": 159.40416397440032,
+      "roi_within_condition_delay_s": 127.99804577442835,
+      "vertex_e1_arrival_s": 31.431103178651348,
+      "vertex_e2_arrival_s": 159.40416397440032,
+      "vertex_within_condition_delay_s": 127.97306079574898,
+      "speed_mm_min": 2.6091699831548576,
+      "speed_function_mm_min": 2.6091699831548576,
+      "max_abs_Ve_mV": 15.433485430844861,
+      "max_Ke_mM": 31.52141772375073,
+      "max_swelling": 0.8949639642825417,
+      "runtime_s": 3.690861799987033
+    },
+    {
+      "condition": "dipole_aligned",
+      "dt_used_s": 0.04996995735874618,
+      "geodesic_distance_mm": 5.566144315618666,
+      "roi_e1_arrival_s": 31.3811332212926,
+      "roi_e2_arrival_s": 163.0269858829094,
+      "roi_within_condition_delay_s": 131.6458526616168,
+      "vertex_e1_arrival_s": 31.431103178651348,
+      "vertex_e2_arrival_s": 162.8520910321538,
+      "vertex_within_condition_delay_s": 131.42098785350245,
+      "speed_mm_min": 2.5368718587402426,
+      "speed_function_mm_min": 2.5368718587402426,
+      "max_abs_Ve_mV": 16.384820032184784,
+      "max_Ke_mM": 31.504237947379163,
+      "max_swelling": 0.8949607589870853,
+      "runtime_s": 11.993324799928814
+    }
+  ],
+  "paired_comparison": {
+    "speed_change_dipole_minus_no_mm_min": -0.07229812441461503,
+    "speed_slowdown_no_minus_dipole_mm_min": 0.07229812441461503,
+    "speed_percent_change_vs_no_dipole": -2.770924274055779,
+    "vertex_delay_increase_s": 3.447927057753475,
+    "roi_delay_increase_s": 3.6478068871884517,
+    "between_condition_E1_arrival_shift_s": 0.0,
+    "between_condition_downstream_E2_arrival_shift_s": 3.447927057753475,
+    "max_abs_Ve_change_mV": 0.9513346013399229
+  }
+}

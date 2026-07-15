@@ -1,0 +1,11 @@
+# Run from repository root: C:\work\CSD
+# The driver fails on missing core dependencies/inputs and writes only below results/reviewer_revision_analysis.
+C:\work\CSD\.venv\Scripts\python.exe scripts/reviewer_revision_analysis/run_all_revision_analyses.py
+
+# Optional verification
+python -m pytest tests/test_surface_mechanistic.py tests/test_surface_representative.py  # pytest is absent from .venv; uses an existing system installation
+git status --short
+git diff --name-only
+
+Git commit analyzed: 4996a1065f65c7b9dc7f758561a2fbeadc3ca34d
+Fixed random seed: 20260714

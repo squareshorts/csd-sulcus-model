@@ -1,0 +1,13 @@
+command=scripts/reviewer_revision_analysis/run_all_revision_analyses.py
+cwd=C:\work\CSD
+start_utc=2026-07-14T15:20:07.173059+00:00
+python=3.11.15 (main, Jun  2 2026, 22:29:49) [MSC v.1944 64 bit (AMD64)]
+seed=20260714
+Canonical baseline runtime_s=3.690862
+Canonical dipole runtime_s=11.993325
+Canonical vertices stim/e1/e2=471/636/624
+Canonical speed no/dip=2.609169983155/2.536871858740
+12-geometry pathwise sweep runtime_s=69.084390
+end_utc=2026-07-14T15:23:04.047641+00:00
+consistency_checks_passed=27
+git_safety_passed=True

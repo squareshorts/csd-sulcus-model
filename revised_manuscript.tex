@@ -1,0 +1,462 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{natbib}
+\usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{placeins}
+
+\geometry{margin=1in}
+\doublespacing
+\graphicspath{{./}{figures/}}
+
+\newcommand{\ShortTitle}{Folded geometry slows CSD propagation}
+\newcommand{\TOCSummary}{A reduced surface electrodiffusion model predicts a consistent, orientation-dependent slowing term for spreading depolarization in folded cortex.}
+
+\title{Folded tissue geometry adds an electrodiffusive slowing term to cortical spreading depolarization}
+
+\author{
+Antonio Pereira\thanks{Correspondence: Antonio Pereira, \texttt{apereira@ufpa.br}; ORCID: 0000-0002-0808-1058.}\\
+\small Signal Processing Laboratory, Institute of Technology, Federal University of Para (UFPA)
+\and
+Marlon Malheiros \\
+\small Signal Processing Laboratory, Institute of Technology, Federal University of Para (UFPA) \\
+\small \texttt{marlon.malheiros1@gmail.com}; ORCID: 0009-0007-1750-9910
+\and
+Rubem Guedes\\
+\small Department of Nutrition, Federal University of Pernambuco (UFPE)\\
+\small \texttt{guedes.rca@gmail.com}; ORCID: 0000-0002-2396-4019
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\parbox{0.95\textwidth}{\small
+\textbf{Condensed title:} \ShortTitle\\
+\textbf{Summary:} \TOCSummary}
+\end{center}
+
+\begin{abstract}
+Cortical spreading depolarization (CSD) propagates across cortex at millimeters per minute and can slow in sulcal regions, but the contribution of folded geometry remains unresolved. We tested whether sulcal dipole alignment adds a measurable electrodiffusive delay in a reduced surface model in which extracellular diffusion remains the dominant transport process. The model included overlapping extracellular and intracellular surface compartments, explicit K$^+$, Na$^+$, and Cl$^-$ concentrations, Goldman--Hodgkin--Katz membrane voltage, activation-dependent membrane sources, Na$^+$/K$^+$ pump dynamics, dynamic extracellular-space restriction, and a quasi-static screened potential. A nonlocal dipole kernel coupled membrane-current deviations through geodesic distance and surface-normal opposition. We compared paired simulations with dipole alignment disabled or enabled in one representative folded surface, 12 synthetic folded geometries plus a flat control, and 8 sulcal versus 8 flatter fsaverage6 patches. In the representative simulation, cross-fold speed decreased from 2.609 to 2.537~mm/min and the region-of-interest E1--E2 delay increased from 128.0 to 131.6~s. Across the synthetic sweep, all folded geometries slowed, whereas the flat control did not. Mean slowdown was 0.136~mm/min (95\% bootstrap CI 0.106--0.170), corresponding to a 4.88\% speed reduction, and mean delay increased by 6.81~s (95\% CI 5.31--8.26). Null kernels and atlas patches supported geometry specificity. In this reduced surface model, folded cortical anatomy adds an orientation-dependent electrodiffusive slowing term to diffusion-driven CSD propagation.
+\end{abstract}
+
+\noindent \textbf{Keywords:} cortical spreading depolarization, electrodiffusion, sulcus, extracellular diffusion, dipole alignment, cortical folding, surface model
+
+\section{Introduction}
+
+Cortical spreading depolarization (CSD) is a slowly propagating wave of near-complete neuronal and glial depolarization that travels across cortex at a few millimeters per minute and is implicated in migraine aura and several forms of acute brain injury, including ischemic stroke, aneurysmal subarachnoid hemorrhage, and traumatic brain injury \citep{Harriott2025,Andrew2022,Mehra2023,vanHameren2024,Dahlem_2004}.
+
+CSD is accompanied by large extracellular K$^+$ elevations, slow/direct-current potential shifts, and major disturbances of ionic homeostasis. It is classically associated with transient depression of spontaneous cortical activity, though its electrophysiological signature is more heterogeneous than a uniform suppression \citep{Andrew2022,Nasretdinov2023}, and it produces marked but reversible changes in extracellular-space (ECS) volume fraction and tortuosity \citep{Tonnesen2022,Sykova2008,Mazel2002ECS}. The cellular and ionic mechanisms have been studied extensively, but how cortical geometry and folding shape propagation at the mesoscopic scale relevant to electrocorticography, optical imaging, and clinical monitoring remains less clear \citep{Andrew2022,PalopoliTrojani2024,SanchezPorras2024,Zhang2026}. Propagation is not always a spatially uniform columnar event: in rat barrel cortex, seizure-associated SD can initiate superficially, propagate downward, and stop near the L4/L5 border rather than invading the full cortical depth \citep{Zakharov2019}, indicating that spread depends on depth-dependent tissue organization and sampling geometry, not horizontal extent alone.
+
+Folding is difficult to interpret because sulci change several geometric factors at once. In folded cortex, propagation can vary with path length, curvature, and cortical depth, and trans-sulcal interactions may differ from those on flatter surfaces. Slower propagation in a sulcus may therefore reflect more than one mechanism---altered geometric constraints on spread, or depth- and orientation-dependent tissue responses---rather than a single reduction in effective coupling \citep{Andrew2022,SanchezPorras2024}. Distinguishing among these possibilities matters because fold morphology itself alters local electric field distributions \citep{Royer2026,Nasretdinov2023,PalopoliTrojani2024,Wang2025}.
+
+Existing CSD models emphasize different mechanisms and spatial scales, spanning tissue-level reaction--diffusion models, multiscale ion-dynamics models, and electrodiffusive formulations that explicitly represent ionic diffusion, membrane fluxes, extracellular potentials, and, in some cases, volume changes \citep{Dahlem_2004,Kelley2022,Saetra2024}. How cortical folding modifies these processes at the mesoscale relevant to surface recordings remains unresolved.
+
+A further motivation comes from EEG/MEG source modeling and biophysical studies of extracellular fields, where source orientation and cortical geometry shape measured signal amplitudes and local field structure \citep{Kirschstein_2009,Ahlfors2010a,Ahlfors2010b,Reimann2013}. In sulcal banks, oppositely oriented dipoles on facing walls can partially cancel, reducing measurable field amplitudes relative to gyral crowns \citep{Kirschstein_2009}. This raises the question of whether folded anatomy alters the balance between diffusion and quasi-static field-mediated drift.
+
+Here we use CSD as a model biological wave to test whether folded tissue geometry can modify propagation through a quasi-static electrodiffusive mechanism in addition to path length and diffusion. We developed a reduced surface electrodiffusion model with overlapping extracellular and intracellular compartments, explicit ionic concentrations, dynamic ECS restriction, membrane source terms, and a geometry-coupled extracellular field. The central question is whether local surface-normal opposition in a fold can alter field-mediated ionic drift enough to produce a measurable propagation delay while extracellular diffusion remains the dominant transport process. We predicted that this delay would be present in folded geometries, absent in a flat control, reduced by orientation-scrambled null kernels, and stronger in deeper or narrower folds. The electrical contribution is modeled as a quasi-static surface potential generated by membrane-current and ionic-concentration deviations, not as propagating electromagnetic radiation.
+
+\section{Materials and methods}
+
+\subsection{Model overview}
+
+We used a reduced surface electrodiffusion model to test whether folded cortical geometry can modify CSD propagation through an orientation-dependent quasi-static field term. The model represents overlapping extracellular and intracellular surface compartments with explicit K$^+$, Na$^+$, and Cl$^-$ concentrations, membrane voltage, activation-dependent membrane source terms, Na$^+$/K$^+$ pump dynamics, and dynamic ECS restriction during swelling (Fig.~\ref{fig:model_overview}A). Propagation was evaluated across a flat control surface, synthetic folded surfaces, and atlas-derived cortical patches from fsaverage6
+(Fig.~\ref{fig:model_overview}B).
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{fig_modelling_csd.png}
+\caption{Overview of the reduced surface electrodiffusion model and simulated geometries. (A) Extracellular and intracellular surface compartments are coupled through K$^+$, Na$^+$, and Cl$^-$ transport, membrane voltage, activation-dependent source terms, Na$^+$/K$^+$ pump dynamics, and ECS restriction during swelling. (B) Surface geometries used to test geometry-dependent propagation effects: a flat control, synthetic folded surfaces with local dipole orientation following surface normals, and atlas-derived cortical patches extracted from fsaverage6.}
+\label{fig:model_overview}
+\end{figure}
+
+\subsection{Synthetic surface geometry}
+
+We used a triangulated folded-strip surface to isolate sulcal geometry while keeping the model computationally tractable. The Gaussian cross-sectional profile was
+\begin{equation}
+ z(y)=-d\exp\!\left[-\frac{1}{2}\left(\frac{y}{\sigma}\right)^2\right],
+\end{equation}
+where $d$ is requested fold depth and $\sigma$ is the width parameter. The representative surface contained 1,792 vertices and 3,402 triangular faces over a 22~mm by 10~mm domain, with $d=2.4$~mm and $\sigma=1.5$~mm. Because the 28-point cross-section contains no vertex exactly at $y=0$, the sampled maximum depth is slightly smaller than the analytic requested depth; the requested parameters define all reported geometries. The geometry sweep used depths 1.2, 1.8, 2.4, and 3.0~mm crossed with $\sigma\in\{1.1,1.5,1.9\}$~mm, plus a flat control with $d=0$ (Fig.~\ref{fig:fold_profiles}). Sweep geometries were generated on a standardized 1,248-vertex, 2,346-face mesh, so the sweep row with $d=2.4$~mm and $\sigma=1.5$~mm is a matched sweep case rather than the exact higher-resolution representative run.
+
+Propagation was initiated by a focal initial perturbation on one sulcal bank. Two automatically selected readout regions, E1 and E2, were fixed on opposite banks before running the paired conditions. Their centers, the stimulus, and the cross-fold path are shown in Fig.~\ref{fig:surface_readouts}. Cross-fold speed was computed from center-to-center geodesic distance and median arrival times within 1-mm geodesic regions around E1 and E2.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{synthetic_fold_profiles.pdf}
+\caption{Implemented Gaussian fold family. Each panel shows one depth--width combination with equal physical scaling in millimeters; the dashed line is the flat control. The representative geometry ($d=2.4$~mm, $\sigma=1.5$~mm) is highlighted.}
+\label{fig:fold_profiles}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{representative_surface_readouts.pdf}
+\caption{Representative synthetic surface and frozen physical readouts. The focal stimulus, E1, E2, and the full cross-fold path are shown on the three-dimensional surface. The same physical definitions were used in the no-dipole and dipole-aligned conditions.}
+\label{fig:surface_readouts}
+\end{figure}
+
+\subsection{Atlas-based patch analysis}
+
+To test whether the sign of the effect survives beyond the synthetic strip without attempting full human validation, we added an atlas-based multi-patch specificity analysis. We used the public fsaverage6 left-hemisphere surfaces distributed by Nilearn, derived a midthickness surface by averaging the white and pial meshes, and carried over the corresponding sulcal-depth map. We selected 8 deep sulcal centers and 8 flatter centers separated geodesically by at least 30~mm, then grew equal-radius geodesic patches of 12~mm around each center. Within each patch we kept the same solver, placed a focal stimulus reproducibly near one end of the dominant patch axis, and defined the downstream virtual electrode geodesically along the resulting traversal path. The atlas analysis was used as a geometry-level specificity check rather than subject-specific validation. Because fsaverage6 is an averaged atlas surface, it is smoother than many individual cortical reconstructions and can underrepresent fine subject-specific folding.
+
+\subsection{Surface transport and membrane source terms}
+
+The model evolves extracellular and intracellular nodal concentrations of K$^+$, Na$^+$, and Cl$^-$ on overlapping surface compartments. These are reduced surface fields with no through-thickness coordinate; each local compartment is therefore treated as well mixed in the unresolved direction. For each species $s\in\{\mathrm{K},\mathrm{Na},\mathrm{Cl}\}$,
+\begin{equation}
+\frac{\partial c_s^{e}}{\partial t}
+= \nabla_{\Gamma}\!\cdot\!\left[
+D_s(\alpha,\lambda)
+\left(
+\nabla_{\Gamma}c_s^{e}
++z_s\beta_{\mathrm{ed}}c_s^{e}\nabla_{\Gamma}\hat{\phi}
+\right)
+\right]
++\frac{S_s^{m}}{\alpha},
+\label{eq:extracellular}
+\end{equation}
+\begin{equation}
+\frac{\partial c_s^{i}}{\partial t}
+=-\frac{S_s^{m}}{1-\alpha}.
+\label{eq:intracellular}
+\end{equation}
+Here $\Gamma$ is the cortical surface, $\alpha$ is ECS volume fraction, $\lambda$ is tortuosity, $z_s$ is ion valence, and $D_s$ is effective surface diffusivity. The implementation variable $S_s^m$ is defined as an extracellular concentration source: $S_s^m>0$ increases extracellular and decreases intracellular concentration. Effective extracellular diffusion is scaled by $\alpha/\lambda^2$ and by species-specific factors.
+
+Membrane source terms are constructed from deviations of conductance-based currents and pump rate from their resting values:
+\begin{align}
+S_{\mathrm K}^{m} &= a_I(I_{\mathrm K}-I_{\mathrm K,0})-2a_P(P-P_0),\\
+S_{\mathrm{Na}}^{m} &= a_I(I_{\mathrm{Na}}-I_{\mathrm{Na},0})+3a_P(P-P_0),\\
+S_{\mathrm{Cl}}^{m} &= -a_I(I_{\mathrm{Cl}}-I_{\mathrm{Cl},0}),
+\end{align}
+with $a_I=0.038$ and $a_P=0.011$. These are phenomenological concentration-rate conversion factors; the reduced model does not include an explicit membrane area-to-volume ratio or a Faraday-based current-to-molar conversion. The ionic currents are
+\begin{equation}
+I_s=g_s(V_m-E_s),
+\qquad
+g_s=g_{s,L}+g_{s,A}\theta,
+\end{equation}
+where $E_s$ is the Nernst potential,
+\begin{equation}
+E_s=\frac{26.64}{z_s}\ln\!\left(\frac{\max(c_s^{e},10^{-6})}{\max(c_s^{i},10^{-6})}\right)\ \mathrm{mV}.
+\end{equation}
+For Cl$^-$, $z_{\mathrm{Cl}}=-1$. Membrane voltage is updated from the Goldman--Hodgkin--Katz relation
+\begin{equation}
+V_m=26.64\ln\!\left(
+\frac{P_{\mathrm K}c_{\mathrm K}^{e}+P_{\mathrm{Na}}c_{\mathrm{Na}}^{e}+P_{\mathrm{Cl}}c_{\mathrm{Cl}}^{i}}
+{P_{\mathrm K}c_{\mathrm K}^{i}+P_{\mathrm{Na}}c_{\mathrm{Na}}^{i}+P_{\mathrm{Cl}}c_{\mathrm{Cl}}^{e}}
+\right)\ \mathrm{mV},
+\end{equation}
+with $P_s=P_{s,L}+P_{s,A}\theta$ and concentration floors of $10^{-6}$ in the numerical evaluation.
+
+The Na$^+$/K$^+$ pump is
+\begin{equation}
+P=P_{\max}
+\frac{(c_{\mathrm{Na}}^{i})^3}{(c_{\mathrm{Na}}^{i})^3+14^3}
+\frac{(c_{\mathrm K}^{e})^2}{(c_{\mathrm K}^{e})^2+4.2^2}
+\operatorname{clip}(O,0.20,1.00),
+\label{eq:pump}
+\end{equation}
+where concentrations are in mM and $P_{\max}=1.25$. Oxygen was fixed at $O=1$ in the primary dipole-isolation comparisons.
+
+The activation variable obeys
+\begin{equation}
+\tau_{\theta}\frac{d\theta}{dt}=\theta_{\infty}-\theta,
+\qquad \tau_{\theta}=4.5\ \mathrm{s},
+\end{equation}
+with
+\begin{equation}
+\theta_{\infty}=\left[1+\exp\!\left(-\frac{c_{\mathrm K}^{e}-8.5}{1.35}-\frac{V_m+58}{6.5}\right)\right]^{-1}.
+\end{equation}
+The sigmoid argument is clipped to $[-60,60]$, and $\theta$ is clipped to $[0,1.5]$. The implementation also enforces a minimum activation target of 0.55 after the extracellular-K$^+$ wave criterion is reached. Exact conductance, permeability, initialization, and clipping values are listed in Table~\ref{tab:parameters} and Supplementary Table~S4.
+
+\subsection{Quasi-static screened potential and dipole kernel}
+
+The recovered extracellular potential is represented by the dimensionless field
+\begin{equation}
+\hat{\phi}=\frac{V_e}{V_0},
+\qquad V_0=5\ \mathrm{mV},
+\end{equation}
+and the electrodiffusive coefficient used in Eq.~\eqref{eq:extracellular} is
+\begin{equation}
+\beta_{\mathrm{ed}}=m_{\mathrm{ed}}\frac{V_0}{26.64\ \mathrm{mV}},
+\qquad m_{\mathrm{ed}}=0.50.
+\end{equation}
+The numerical value is $\beta_{\mathrm{ed}}=0.09384$.
+
+Charge-density deviations from rest are represented by
+\begin{equation}
+\rho_e=(c_{\mathrm K}^{e}-c_{\mathrm K,0}^{e})
++(c_{\mathrm{Na}}^{e}-c_{\mathrm{Na},0}^{e})
+-(c_{\mathrm{Cl}}^{e}-c_{\mathrm{Cl},0}^{e}),
+\end{equation}
+and $\hat\phi$ is obtained from
+\begin{equation}
+-\nabla_{\Gamma}\cdot(\sigma_{\phi}\nabla_{\Gamma}\hat{\phi})
++\kappa\hat{\phi}
+=\gamma_{\rho}\rho_e-\gamma_d\mathcal K_d[I_m].
+\label{eq:screenedpotential}
+\end{equation}
+Here $\gamma_{\rho}=0.084$ scales the concentration-deviation source, $\gamma_d=1.50$ scales the nonlocal dipole source, $\kappa=0.65$ is the screening coefficient, and $\sigma_{\phi}$ is a conductivity-like surface operator set to 1.8 times the corresponding transport fields. These coefficients are phenomenological surface-model scales. Equation~\eqref{eq:screenedpotential} is a reduced quasi-static screened closure, not a Poisson--Boltzmann equilibrium model.
+
+The dipole term represents the following geometric mechanism. Each active surface patch contributes a membrane-current dipole approximately aligned with its local surface normal. Facing sulcal banks therefore contain oppositely oriented dipoles. Their screened nonlocal interaction changes the tangential potential gradient that enters ionic drift in Eq.~\eqref{eq:extracellular}. The implemented kernel is
+\begin{equation}
+\mathcal K_d[I_m](i)=\sum_{j\ne i}w_{ij}I_m(j),
+\qquad
+w_{ij}\propto
+\exp[-d_g(i,j)/\ell_d]
+\frac{1-\mathbf n_i\cdot\mathbf n_j}{2},
+\end{equation}
+with geodesic distance $d_g$, local normals $\mathbf n_i$, screening length $\ell_d=4$~mm, and cutoff $d_c=12$~mm. Each row is normalized over vertices satisfying $d_g(i,j)\le d_c$; numerically negligible rows are set to zero. The field solution uses natural no-normal-flux boundary conditions on the finite mesh, followed by subtraction of the mass-weighted mean to fix the potential gauge.
+
+\subsection{ECS dynamics and vascular sensitivity}
+
+Let
+\begin{equation}
+r=\max\!\left[
+\frac{(c_{\mathrm K}^{i}+c_{\mathrm{Na}}^{i}+c_{\mathrm{Cl}}^{i})-C_{i,0}}
+{C_{i,0}},0\right],
+\end{equation}
+where $C_{i,0}$ is the resting intracellular osmotic sum. The bounded swelling target is
+\begin{equation}
+q=5\frac{r}{r+0.06}+0.20\operatorname{clip}(\theta,0,1.5),
+\qquad
+s_{\infty}=1.10\frac{q}{1+q},
+\end{equation}
+with
+\begin{equation}
+\tau_s\frac{ds}{dt}=s_{\infty}-s,
+\qquad
+\tau_s=
+\begin{cases}
+12\ \mathrm{s}, & s_{\infty}\ge s,\\
+28\ \mathrm{s}, & s_{\infty}<s.
+\end{cases}
+\end{equation}
+Swelling feeds back into transport through
+\begin{align}
+\alpha(s)&=\operatorname{clip}\!\left[\alpha_0(1-0.34\operatorname{clip}(s,0,1.10)),0.08,0.20\right],\\
+\lambda(s)&=\operatorname{clip}\!\left[\lambda_0(1+0.28\operatorname{clip}(s,0,1.10)),1.0,4.8\right],
+\end{align}
+where $\alpha_0$ and $\lambda_0$ are the geometry-dependent baseline ECS fields. In the primary comparison, vascular feedback was disabled. A secondary sensitivity analysis enabled a perfusion--oxygen--constriction subsystem; because that extension changes the excitability regime, it was treated as exploratory.
+
+\subsection{Initial and boundary conditions}
+
+Uniform resting concentrations were $c_{\mathrm K}^{e}=3.5$, $c_{\mathrm K}^{i}=140$, $c_{\mathrm{Na}}^{e}=145$, $c_{\mathrm{Na}}^{i}=18$, $c_{\mathrm{Cl}}^{e}=112$, and $c_{\mathrm{Cl}}^{i}=7$~mM. Initial $V_m$ was the resting GHK value; $\theta=0$, $s=0$, $\hat\phi=0$, and $O=1$. At $t=0$, vertices within 1.2~mm three-dimensional Euclidean distance of the stimulus center were set to $c_{\mathrm K}^{e}\ge22$~mM, $c_{\mathrm{Na}}^{e}$ was reduced by 10~mM with a 5~mM floor, and $\theta\ge0.92$. No sustained source was applied.
+
+Surface transport uses mesh-edge fluxes with no exterior-edge term, giving natural zero-normal-flux conditions on the finite open strip. The potential solve uses the same natural boundary condition. No CSF, meninges, skull, scalp, external conductivity layer, or absorbing boundary is represented.
+
+\subsection{Robustness, shoulder analysis, and convergence}
+
+To test whether the dipole effect depended on a narrow parameter choice, we varied $V_0$, $m_{\mathrm{ed}}$, $\ell_d$, $d_c$, and $\gamma_d$ over three-point ranges. Tests were performed on a flat control plus low-, representative-, and high-severity folded geometries with all other terms unchanged.
+
+To distinguish orientation-specific dipole alignment from generic nonlocal smoothing, one null kernel retained only the screened distance footprint and a second reassigned normals by a fixed seed-13 permutation before calculating orientation opposition. Both kernels used the same cutoff, pruning, and row normalization as the aligned kernel.
+
+To directly test whether folds instead produce an opposite-sign acceleration at gyral shoulders, the representative cross-section was divided before examining condition differences using analytic Gaussian landmarks: fundus/bank boundaries at $|y|=0.5\sigma$, curvature inflections at $|y|=\sigma$, and shoulder-to-flatter boundaries at $|y|=2\sigma$. We compared arrival-time differences and local-speed estimates along the same path. Any apparent shoulder acceleration was checked on a neighboring 72-by-32 mesh, with the time step halved, and with several derivative definitions. The same region analysis was repeated across all 12 folded geometries.
+
+We also evaluated neighboring mesh resolutions and a halved time step. For convergence tests, stimulus and readout coordinates were fixed on the reference mesh and projected to the nearest vertices on each alternative mesh.
+
+\subsection{Numerics and statistics}
+
+Surface transport was discretized on the triangular mesh with lumped-mass finite elements and edge-based fluxes. Time integration used explicit Euler with an automatically selected stable time step; the representative step was 0.04997~s. The representative comparison ran for 220~s, the geometry sweep for 210~s per case, and the atlas patch analysis for 180~s per patch. State variables were clipped to the implementation ranges listed in Supplementary Table~S4.
+
+Arrival was the first discrete solver sample at $t\ge0.5$~s for which $V_m\ge-28$~mV; no temporal interpolation was applied. Let $\widetilde T_{E1}$ and $\widetilde T_{E2}$ denote median arrival times inside 1-mm geodesic regions around the fixed E1 and E2 centers. Cross-fold speed was
+\begin{equation}
+v=60\frac{d_g(E1,E2)}{\widetilde T_{E2}-\widetilde T_{E1}}\quad\mathrm{mm/min}.
+\end{equation}
+The primary delay reported with speed is $\widetilde T_{E2}-\widetilde T_{E1}$. Center-vertex downstream arrival shifts were retained as a secondary timing readout.
+
+The primary mechanistic test was paired: for each geometry, the same model was run with dipole alignment disabled or enabled. Folded geometries were analyzed with one-sided paired Wilcoxon signed-rank tests under the directional alternative that dipole alignment decreases speed and increases delay. We computed bootstrap 95\% confidence intervals for mean slowdown and delay increase and Spearman correlations with fold geometry. These statistics quantify consistency across controlled deterministic geometries, not population-level inference over subjects.
+
+\begin{table}[t]
+\centering
+\begingroup
+\scriptsize
+\singlespacing
+\caption{Core model and representative-simulation parameters. Additional implementation safeguards are listed in Supplementary Table~S4.}
+\label{tab:parameters}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llll@{}}
+\toprule
+Parameter & Symbol & Value & Notes \\
+\midrule
+Field reference scale & $V_0$ & 5 mV & $\hat\phi=V_e/V_0$ \\
+Thermal voltage & -- & 26.64 mV & Used in GHK, Nernst, and $\beta_{\mathrm{ed}}$ \\
+Electrodiffusion mobility fraction & $m_{\mathrm{ed}}$ & 0.50 & $\beta_{\mathrm{ed}}=0.09384$ \\
+Charge-field gain & $\gamma_{\rho}$ & 0.084 & Phenomenological source gain \\
+Dipole-field gain & $\gamma_d$ & 1.50 & Multiplies row-normalized kernel \\
+Field screening coefficient & $\kappa$ & 0.65 & Screened surface solve \\
+Surface operator scale & $\sigma_{\phi}$ & $1.8D_{\parallel,\perp}$ & Conductivity-like, not calibrated S/m \\
+Dipole screening length/cutoff & $\ell_d,d_c$ & 4, 12 mm & Geodesic kernel \\
+Base diffusivity & $D_0$ & 0.010 mm$^2$/s & Before ECS and anisotropy scaling \\
+Ion diffusivity scales & K$^+$, Na$^+$, Cl$^-$ & 1.00, 0.82, 1.08 & Relative multipliers \\
+Current and pump source scales & $a_I,a_P$ & 0.038, 0.011 & Phenomenological concentration-rate factors \\
+Leak conductances & $g_{K,L},g_{Na,L},g_{Cl,L}$ & 0.14, 0.035, 0.06 & Implementation scales \\
+Active conductances & $g_{K,A},g_{Na,A},g_{Cl,A}$ & 0.34, 0.46, 0.14 & Multiplied by $\theta$ \\
+Active GHK permeabilities & $P_{K,A},P_{Na,A},P_{Cl,A}$ & 1.25, 1.55, 0.18 & Relative permeability scales \\
+Pump maximum & $P_{\max}$ & 1.25 & Before source conversion \\
+Pump half-activation & -- & 14 mM Na$^+_i$; 4.2 mM K$^+_e$ & Hill exponents 3 and 2 \\
+Activation time constant & $\tau_\theta$ & 4.5 s & $\theta$ clipped to $[0,1.5]$ \\
+Activation midpoints/slopes & -- & 8.5/1.35 mM; $-58$/6.5 mV & K$^+$ and voltage terms \\
+ECS volume-fraction bounds & $\alpha_{\min},\alpha_{\max}$ & 0.08, 0.20 & Dynamic ECS restriction \\
+Tortuosity bounds & $\lambda_{\min},\lambda_{\max}$ & 1.0, 4.8 & Dynamic restriction \\
+Swelling time constants & $\tau_s$ & 12, 28 s & Growth and recovery \\
+Arrival threshold & $V_m$ & $-28$ mV & First discrete crossing \\
+Representative fold & $d,\sigma$ & 2.4, 1.5 mm & 1,792 vertices; 3,402 faces \\
+Time step/run duration & $\Delta t,T$ & 0.04997, 220 s & Representative paired run \\
+Stimulus radius & -- & 1.2 mm & Three-dimensional Euclidean distance \\
+Stimulus state & -- & K$^+_e\ge22$ mM; Na$^+_e-10$ mM; $\theta\ge0.92$ & Initial condition only \\
+\bottomrule
+\end{tabular}%
+}
+\endgroup
+\end{table}
+
+\section{Results}
+
+\subsection{Representative slowdown}
+
+In the representative run, enabling sulcal dipole alignment reduced cross-fold speed from 2.609 to 2.537~mm/min, a slowdown of 0.072~mm/min or 2.77\% (Table~\ref{tab:representative}). The ROI-defined E1--E2 delay increased from 128.0 to 131.6~s, an increase of 3.6~s. The corresponding downstream E2 center-vertex arrival shift was 3.45~s. Maximum absolute recovered extracellular potential increased from 15.4 to 16.4~mV. Both conditions used identical geometry, initial state, stimulus, readout locations, diffusion fields, membrane kinetics, and swelling dynamics.
+
+The visualizations show the paired difference directly. Arrival-time maps use identical scales for the two conditions, and the signed map is defined as $\Delta T=T_{\mathrm{dipole}}-T_{\mathrm{no\ dipole}}$, so positive values indicate later arrival under dipole alignment (Fig.~\ref{fig:arrival_difference}). Along the fixed cross-fold path, the delay develops across the fold and remains positive at E2 (Fig.~\ref{fig:path_timing}). Matched concentration maps and signed kymographs are provided in Supplementary Figs.~S5--S6.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{arrival_time_difference_map.pdf}
+\caption{Representative arrival-time comparison. Left and center, no-dipole and dipole-aligned arrival-time maps on the native surface plan-view coordinates, with identical color limits. Right, signed arrival-time difference $\Delta T=T_{\mathrm{dipole}}-T_{\mathrm{no\ dipole}}$; positive values indicate later arrival with dipole alignment. The stimulus, E1, and E2 are marked.}
+\label{fig:arrival_difference}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{path_arrival_and_deltaT.pdf}
+\caption{Arrival time along the full cross-fold path. Top, unsmoothed front-arrival times in the no-dipole and dipole-aligned conditions. Bottom, signed difference $\Delta T$. Vertical boundaries identify geometry-defined regions; the same path and physical readouts were used in both conditions.}
+\label{fig:path_timing}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Representative paired comparison for the folded surface ($d=2.4$~mm, $\sigma=1.5$~mm). Delay is the difference between median arrival times within 1-mm geodesic regions around E1 and E2.}
+\label{tab:representative}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Condition & Speed (mm/min) & E1--E2 delay (s) & Max $|V_e|$ (mV) \\
+\midrule
+No dipole & 2.609 & 128.0 & 15.4 \\
+Dipole aligned & 2.537 & 131.6 & 16.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The flat control provided an internal specificity check. With zero fold depth, the aligned kernel produced no change in cross-fold speed (3.375~mm/min in both conditions) or delay (69.0~s in both conditions). Thus, the effect requires orientation variation generated by folding and is not produced by adding the potential solve alone.
+
+\subsection{Geometry sweep}
+
+The paired geometry sweep gave a broader version of the same result (Fig.~\ref{fig:sweep}; Table~\ref{tab:stats}). All 12 folded geometries were slower with dipole alignment, whereas the flat control again showed zero effect. The sweep values in Supplementary Table~S1 use the standardized sweep mesh; the higher-resolution representative run is reported separately in Table~\ref{tab:representative}. Mean slowdown was 0.136~mm/min (95\% bootstrap CI 0.106--0.170), corresponding to a mean 4.88\% speed reduction. Mean delay increased by 6.81~s (95\% CI 5.31--8.26). One-sided paired Wilcoxon tests were significant for speed decrease and delay increase (both $p=2.44\times10^{-4}$); because the geometries are deterministic and chosen, these $p$-values summarize the consistency of the sign across folds rather than inference over a sampled population. Slowdown tracked fold severity, defined as depth/$\sigma$ (Spearman $\rho=0.67$, $p=1.68\times10^{-2}$), whereas the correlation with depth alone was weaker and not significant ($\rho=0.41$, $p=1.85\times10^{-1}$).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{mechanistic_sulcal_slowing.png}
+\caption{Paired geometry sweep. Left, each line connects no-dipole and dipole-aligned cross-fold speeds for one folded geometry. Right, dipole-induced slowing against fold severity (depth/$\sigma$); point color indicates fold depth. The flat control is shown separately at zero slowing.}
+\label{fig:sweep}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Summary statistics for the paired folded-geometry sweep.}
+\label{tab:stats}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Statistic & Value \\
+\midrule
+Folded geometries slower with dipole alignment & 12/12 \\
+Mean speed slowdown & 0.136~mm/min \\
+95\% CI for mean speed slowdown & 0.106--0.170~mm/min \\
+Mean relative speed reduction & 4.88\% \\
+Mean delay increase & 6.81~s \\
+95\% CI for mean delay increase & 5.31--8.26~s \\
+Wilcoxon $p$ for speed decrease & $2.44\times10^{-4}$ \\
+Wilcoxon $p$ for delay increase & $2.44\times10^{-4}$ \\
+Spearman $\rho$ (depth vs slowdown) & 0.41 \\
+Spearman $p$ (depth vs slowdown) & $1.85\times10^{-1}$ \\
+Spearman $\rho$ (depth/$\sigma$ vs slowdown) & 0.67 \\
+Spearman $p$ (depth/$\sigma$ vs slowdown) & $1.68\times10^{-2}$ \\
+Flat-control slowdown & 0.000~mm/min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Robustness and orientation controls}
+
+The dipole effect remained positive across the parameter-sensitivity analysis. When $V_0$, $m_{\mathrm{ed}}$, $\ell_d$, $d_c$, and $\gamma_d$ were varied across 15 settings, all three folded test geometries remained slower in every setting and the flat control remained unchanged. The low-to-high severity ordering was preserved in 12 of 15 settings.
+
+Orientation-specific null controls weakened the effect substantially. In the matched representative analysis, the aligned kernel produced 0.072~mm/min slowing and a 3.45-s downstream center-vertex shift. A distance-only kernel produced 0.014~mm/min slowing and the scrambled-normal kernel produced 0.015~mm/min slowing. Most of the additional delay therefore depended on preserving the relation between membrane-current orientation and folded geometry rather than generic nonlocal smoothing.
+
+Virtual-electrode traces remained bounded and smooth. At the downstream electrode, threshold crossing shifted later under aligned coupling while the local extracellular K$^+$ excursion changed only slightly. Numerical checks also preserved the effect: the representative slowdown remained positive on all tested meshes (0.0615--0.0791~mm/min), and halving the reference time step changed the slowdown from 0.07230 to 0.07243~mm/min.
+
+\subsection{Local shoulder analysis}
+
+The direct pathwise analysis did not support a robust shoulder-specific acceleration. Region boundaries were fixed from the Gaussian geometry before examining propagation. Neither shoulder showed a negative arrival-time difference on the reference mesh or after halving the time step. A one-time-step negative fluctuation appeared at the first shoulder on a neighboring mesh, but local-speed estimates disagreed across derivative definitions and did not reproduce consistently. Delay accumulated mainly through the fundus, opposite bank, and second shoulder, then decreased in the outer post-fold flatter region. Arrival time became non-monotonic in that outer region, so a directional local speed was not well defined there. The atlas result showing faster propagation in several flatter patches therefore should not be interpreted as direct evidence of shoulder-specific gyral acceleration. Full pathwise results are shown in Supplementary Figs.~S7--S8 and Table~S5.
+
+\FloatBarrier
+\subsection{Atlas patch analysis}
+
+Across 8 fsaverage6 sulcal patches, the dipole-aligned condition reduced stimulus-to-downstream speed by $0.091\pm0.082$~mm/min (SE 0.029; 95\% bootstrap CI 0.045--0.149) and increased downstream delay by $1.74\pm1.45$~s (SE 0.51; 95\% CI 0.90--2.76). The sulcal effect was positive in 7 of 8 patches, with one patch unchanged. Across 8 flatter patches, the mean sign reversed: slowdown was $-0.128\pm0.164$~mm/min (SE 0.058; 95\% CI $-0.229$ to $-0.020$), and delay increase was $-2.15\pm3.00$~s (SE 1.06; 95\% CI $-4.04$ to $-0.13$). Six of eight flatter patches showed negative slowdown. A descriptive exact permutation comparison gave a category difference of 0.219~mm/min for slowdown ($p=0.0050$) and 3.89~s for delay increase ($p=0.0065$).
+
+\begin{table}[t]
+\centering
+\small
+\caption{Atlas-based multi-patch check on the public fsaverage6 left-hemisphere surface. Slowdown is no-dipole speed minus dipole-aligned speed; positive values indicate slowing under aligned coupling.}
+\label{tab:atlas}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Patch category & Mean depth & No dipole speed & Dipole-aligned speed & Slowdown & Delay increase \\
+ & (norm.) & (mm/min) & (mm/min) & (mm/min) & (s) \\
+\midrule
+Sulcal patches & 0.544 & 8.093 & 8.002 & 0.091 & 1.74 \\
+Flatter patches & 0.016 & 8.289 & 8.417 & $-0.128$ & $-2.15$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+\subsection{Vascular sensitivity}
+
+Enabling the exploratory vascular extension changed the representative cross-fold speed to 3.592~mm/min while lowering oxygen to 0.20 and perfusion to 0.25 in the most affected vertices. Local edge speeds changed, but the global metric accelerated because oxygen-dependent thresholds and pump modulation changed overall excitability. We therefore treat this run as a sensitivity analysis rather than part of the primary dipole-isolation test.
+
+\section{Discussion}
+
+Folded cortical geometry added a quasi-static electrodiffusive contribution to CSD propagation timing in a reduced surface model where extracellular diffusion remained the dominant transport process. Aligned dipole coupling reduced cross-fold speed in the representative fold, slowed all 12 synthetic folds, left the flat control unchanged, and produced a distinct sulcal-versus-flatter pattern across atlas-derived patches. Orientation-scrambled and distance-only null kernels collapsed the effect, isolating it to the relation between membrane-current orientation and fold geometry rather than generic nonlocal smoothing. The consistency and specificity of this pattern, not its magnitude, are the central findings.
+
+The mechanism sits within the established CSD framework in which extracellular K$^+$ transport, membrane exchange, and ECS geometry shape propagation \citep{Tuckwell1978,Wei2014,Zandt2015,Kelley2022,Saetra2024,Sykova2008,Tonnesen2022}. Membrane-current dipoles on facing sulcal banks point in opposing directions; their screened interaction slightly alters the tangential extracellular field that assists ionic drift. Diffusion still carries the front, but it arrives later after traversing the fold. The added term is quasi-static and local, and does not imply an electromagnetic wave mechanism.
+
+The representative effect was modest: speed decreased by 2.77\%, the ROI-defined transit delay increased by approximately 3.6~s, and maximum recovered $|V_e|$ increased by approximately 1.0~mV (15.4 to 16.4~mV). These indicate a timing correction rather than a large change in field amplitude. Because the potential scale and source factors are uncalibrated, in-vivo detectability is not established; the defensible claim is that folded geometry contributes a small, systematic timing component that may accumulate across longer paths and multiple folds. Consistent with this local reading, the dipole kernel acts over a 4-mm screening length and 12-mm cutoff, whereas CSD traverses centimeter-scale territories and sequential electrode contacts \citep{Dreier2017,Andrew2022}. The model therefore predicts local geometry-dependent timing changes embedded within a larger diffusion-driven event, not cancellation across the entire affected cortex.
+
+Signed curvature alone did not determine the local timing effect. The direct shoulder analysis showed no reproducible opposite-sign acceleration at the synthetic sulcal shoulders; local sign changes occurred elsewhere, and atlas flatter patches often propagated faster, but neither is equivalent to a shoulder-specific gyral effect. The atlas result supports geometry dependence of sign at the patch level, while the synthetic path analysis shows that curvature sign does not map directly onto local timing.
+
+The clearest limitation is dimensional. The electrical formulation is confined to the cortical surface, with no CSF, meninges, skull, scalp, or conductivity interfaces, so it cannot determine whether a poorly conducting skull boundary modifies the slowing term; the internal screening coefficient and surface-operator multiplier are not skull conductivity. Resolving this requires coupling the surface ionic model to a three-dimensional volume conductor or a derived boundary-layer formulation. The remaining limitations concern biophysical fidelity: controlled synthetic geometries, the averaged and relatively smooth fsaverage6 atlas, no subject-specific validation, phenomenological source and ECS relations with no explicit membrane area-to-volume or Faraday-based current-to-concentration derivation, and clipping safeguards that stabilize the reduced implementation at the cost of direct biophysical interpretation. Future work should test subject-specific surfaces, waveform-level validation, layered volume conductors, and higher-fidelity multidomain formulations \citep{Kelley2022,Saetra2024,Andrew2022}.
+
+In conclusion, sulcal dipole alignment adds a small, orientation-specific, geometry-dependent slowing term to diffusion-driven CSD propagation in this reduced surface electrodiffusion model.
+
+\section*{Code and data availability}
+The source code, parameter files, simulation scripts, and tabulated outputs used to reproduce the reported analyses are archived on Zenodo \citep{PereiraCSDModel2026}.
+
+\section*{Funding}
+This work was financially supported by the Conselho Nacional de Desenvolvimento Cient\'ifico e Tecnol\'ogico (CNPq) under Grant No.~309589/2023-1 to A.P., and by the Coordena\c{c}\~ao de Aperfei\c{c}oamento de Pessoal de N\'ivel Superior (CAPES).
+
+\section*{Author contributions}
+Antonio Pereira: Conceptualization, Methodology, Software, Formal analysis, Investigation, Data curation, Visualization, Writing -- original draft, Writing -- review and editing, Funding acquisition, Project administration. Marlon Malheiros: Data curation, Validation, Visualization, Writing -- review and editing. Rubem Guedes: Conceptualization, Methodology, Validation, Writing -- review and editing, Supervision.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
+During the preparation of this work, the authors used OpenAI's ChatGPT to assist with language editing, consistency checks, and manuscript formatting. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.
+
+\section*{Disclosure statement}
+The authors declare no competing interests.
+
+\bibliographystyle{apalike}
+\bibliography{references}
+
+\end{document}

@@ -24,3 +24,7 @@ outputs/surface_mechanistic_study_hardened/
 outputs/surface_representative_after_em/
 outputs/surface_representative_dev_marlon_full/
 outputs/surface_representative_dev_marlon_quick/
+
+# Sindy export large data files
+outputs/sindy_physics_export/*/regression_samples.csv
+outputs/sindy_physics_export/*/state_snapshots.npz

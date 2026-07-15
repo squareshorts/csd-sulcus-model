@@ -1,0 +1,6 @@
+Focused verification command:
+PYTHONPATH=src;scripts python -m pytest tests/test_surface_mechanistic.py tests/test_surface_representative.py -q
+
+Result: 7 passed in 17.02 s (22.3 s wall time), exit code 0.
+
+The analysis .venv does not include the optional pytest dependency. An already installed system Python 3.10 / pytest 9.0.2 was used without changing the workspace environment or uv.lock. Pytest emitted an unrelated RequestsDependencyWarning about the system requests stack; all selected tests passed.

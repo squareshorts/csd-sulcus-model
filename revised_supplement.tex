@@ -1,0 +1,227 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\geometry{margin=1in}
+\onehalfspacing
+\graphicspath{{./}{figures/supplementary/}{figures/}}
+
+\title{Fold-dependent slowing in mechanistic CSD}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+This supplement provides the full paired geometry sweep, representative null-model comparisons, virtual-electrode waveforms, dipole-parameter sensitivity analysis, atlas-based patch check, exact implementation details, paired difference visualizations, and the direct shoulder analysis.
+
+\section*{Supplementary Tables}
+
+\begin{table}[t]
+\centering
+\caption{Full paired geometry sweep for the mechanistic surface electrodiffusion model. Each row compares the same geometry in the no-dipole and dipole-aligned conditions on the standardized sweep mesh. The flat control is included as an internal specificity check and shows zero slowing. The depth 2.4 mm, $\sigma=1.5$ mm sweep row is not the exact higher-resolution representative run.}
+\label{tab:geometry_sweep}
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}rrrrrrrrrrrrr@{}}
+\toprule
+Depth (mm) & $\sigma$ (mm) & Severity & Vertices & Faces & No-dipole speed & Dipole-aligned speed & Slowdown & No-dipole delay & Dipole-aligned delay & Delay increase & No-dipole $|V_e|$ & Dipole-aligned $|V_e|$ \\
+ &  &  &  &  & (mm/min) & (mm/min) & (mm/min) & (s) & (s) & (s) & (mV) & (mV) \\
+\midrule
+0.0 & 1.5 & 0.000 & 1248 & 2346 & 3.375 & 3.375 & 0.000 & 69.0 & 69.0 & 0.0 & 15.11 & 15.11 \\
+1.2 & 1.1 & 1.091 & 1248 & 2346 & 2.396 & 2.273 & 0.123 & 132.7 & 139.9 & 7.2 & 17.22 & 17.69 \\
+1.2 & 1.5 & 0.800 & 1248 & 2346 & 2.421 & 2.276 & 0.145 & 127.6 & 136.9 & 9.3 & 17.06 & 17.69 \\
+1.2 & 1.9 & 0.632 & 1248 & 2346 & 2.476 & 2.410 & 0.066 & 121.9 & 125.2 & 3.3 & 16.87 & 17.37 \\
+1.8 & 1.1 & 1.636 & 1248 & 2346 & 2.653 & 2.512 & 0.141 & 132.7 & 140.4 & 7.7 & 17.36 & 17.83 \\
+1.8 & 1.5 & 1.200 & 1248 & 2346 & 2.610 & 2.456 & 0.154 & 127.4 & 136.1 & 8.7 & 17.16 & 17.80 \\
+1.8 & 1.9 & 0.947 & 1248 & 2346 & 2.626 & 2.524 & 0.102 & 121.6 & 126.4 & 4.8 & 16.92 & 17.02 \\
+2.4 & 1.1 & 2.182 & 1248 & 2346 & 2.979 & 2.816 & 0.163 & 132.7 & 140.6 & 7.9 & 17.51 & 17.89 \\
+2.4 & 1.5 & 1.600 & 1248 & 2346 & 2.865 & 2.703 & 0.162 & 127.1 & 135.1 & 8.0 & 17.25 & 17.91 \\
+2.4 & 1.9 & 1.263 & 1248 & 2346 & 2.806 & 2.741 & 0.065 & 121.1 & 123.9 & 2.8 & 16.99 & 17.54 \\
+3.0 & 1.1 & 2.727 & 1248 & 2346 & 3.352 & 3.174 & 0.178 & 132.6 & 140.6 & 8.0 & 17.64 & 17.89 \\
+3.0 & 1.5 & 2.000 & 1248 & 2346 & 3.140 & 2.872 & 0.268 & 126.7 & 138.2 & 11.5 & 17.35 & 17.58 \\
+3.0 & 1.9 & 1.579 & 1248 & 2346 & 2.971 & 2.900 & 0.071 & 120.6 & 123.2 & 2.6 & 17.08 & 17.65 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Individual atlas-patch results for the fsaverage6 left-hemisphere patch check. The CSV category label flat is reported here as ``flatter'' for consistency with the main text. Slowdown is no-dipole speed minus dipole-aligned speed; positive values indicate slowing under aligned coupling.}
+\label{tab:atlas_individual_patches}
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrlrrrrr@{}}
+\toprule
+Patch & Center vertex & Category & Mean depth & No-dipole speed & Dipole-aligned speed & Slowdown & Delay increase \\
+ &  &  &  & (mm/min) & (mm/min) & (mm/min) & (s) \\
+\midrule
+atlas\_sulcal\_patch\_0 & 34141 & sulcal & 0.733 & 7.682 & 7.545 & 0.137 & 2.78 \\
+atlas\_sulcal\_patch\_1 & 30602 & sulcal & 0.519 & 8.308 & 8.269 & 0.039 & 0.74 \\
+atlas\_sulcal\_patch\_2 & 30880 & sulcal & 0.627 & 8.828 & 8.560 & 0.268 & 4.64 \\
+atlas\_sulcal\_patch\_3 & 3427  & sulcal & 0.472 & 8.333 & 8.288 & 0.044 & 0.85 \\
+atlas\_sulcal\_patch\_4 & 29805 & sulcal & 0.487 & 8.016 & 7.916 & 0.100 & 1.97 \\
+atlas\_sulcal\_patch\_5 & 40765 & sulcal & 0.555 & 7.165 & 7.088 & 0.076 & 1.68 \\
+atlas\_sulcal\_patch\_6 & 9633  & sulcal & 0.486 & 7.862 & 7.862 & 0.000 & 0.00 \\
+atlas\_sulcal\_patch\_7 & 33410 & sulcal & 0.470 & 8.554 & 8.488 & 0.066 & 1.23 \\
+atlas\_flat\_patch\_0   & 30290 & flatter & 0.001 & 7.707 & 7.803 & -0.096 & -0.98 \\
+atlas\_flat\_patch\_1   & 37163 & flatter & 0.014 & 8.643 & 8.731 & -0.088 & -1.61 \\
+atlas\_flat\_patch\_2   & 31588 & flatter & 0.012 & 7.706 & 8.030 & -0.324 & -5.63 \\
+atlas\_flat\_patch\_3   & 3107  & flatter & 0.000 & 8.534 & 8.462 & 0.072 & 1.37 \\
+atlas\_flat\_patch\_4   & 22984 & flatter & 0.000 & 8.459 & 8.618 & -0.159 & -2.95 \\
+atlas\_flat\_patch\_5   & 27065 & flatter & 0.002 & 8.262 & 8.139 & 0.122 & 2.41 \\
+atlas\_flat\_patch\_6   & 5771  & flatter & 0.096 & 8.327 & 8.612 & -0.286 & -5.06 \\
+atlas\_flat\_patch\_7   & 17765 & flatter & 0.005 & 8.673 & 8.937 & -0.265 & -4.74 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Category-level summary of the atlas-patch check. Values are mean $\pm$ SD across patches. SE is the standard error of the mean. Confidence intervals are bootstrap 95\% intervals computed across patches within each category.}
+\label{tab:atlas_category_summary}
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Category & $N$ & Mean depth & No-dipole speed & Dipole-aligned speed & Slowdown & Delay increase \\
+ &  &  & (mm/min) & (mm/min) & (mm/min) & (s) \\
+\midrule
+Sulcal & 8 & 0.544~$\pm$~0.093 & 8.093~$\pm$~0.527 & 8.002~$\pm$~0.503 & 0.091~$\pm$~0.082; SE~=~0.029; 95\% CI 0.045--0.149 & 1.74~$\pm$~1.45; SE~=~0.51; 95\% CI 0.90--2.76 \\
+Flatter & 8 & 0.016~$\pm$~0.033 & 8.289~$\pm$~0.386 & 8.417~$\pm$~0.388 & $-0.128~\pm~0.164$; SE~=~0.058; 95\% CI $-0.229$--$-0.020$ & $-2.15~\pm~3.00$; SE~=~1.06; 95\% CI $-4.04$--$-0.13$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+The atlas-patch values reproduce the main-text means after rounding. In the sulcal group, 7 of 8 patches showed positive dipole-induced slowing and one patch showed no change. In the flatter group, 6 of 8 patches showed negative slowdown. A descriptive exact permutation comparison gave a category difference of 0.219 mm/min for slowdown ($p=0.0050$) and 3.89 s for delay increase ($p=0.0065$). These comparisons are geometry-level specificity checks, not subject-level biological inference.
+
+\begin{table}[t]
+\centering
+\caption{Exact implementation values added for reproducibility. Quantities described as implementation scales are phenomenological coefficients in the reduced surface model.}
+\label{tab:implementation_values}
+\scriptsize
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lll@{}}
+\toprule
+Quantity & Implemented value or rule & Interpretation \\
+\midrule
+Resting concentrations & K$^+_e=3.5$, K$^+_i=140$, Na$^+_e=145$, Na$^+_i=18$, Cl$^-_e=112$, Cl$^-_i=7$ mM & Uniform initial state \\
+Thermal voltage & 26.64 mV & GHK, Nernst, and electrodiffusion coefficient \\
+Current source factor & 0.038 & Phenomenological current-to-concentration-rate factor \\
+Pump source factor & 0.011 & Phenomenological pump-to-concentration-rate factor \\
+Pump activation & Na$^+_i$ Hill exponent 3, half constant 14 mM; K$^+_e$ exponent 2, half constant 4.2 mM & Multiplied by $P_{\max}=1.25$ \\
+Oxygen support & $\operatorname{clip}(O,0.20,1.00)$ & $O=1$ in primary runs \\
+Leak conductances & K 0.14; Na 0.035; Cl 0.06 & Implementation scales \\
+Active conductances & K 0.34; Na 0.46; Cl 0.14, each multiplied by $\theta$ & Implementation scales \\
+Active GHK permeabilities & K 1.25; Na 1.55; Cl 0.18, each multiplied by $\theta$ & Relative permeability scales \\
+Activation target & Logistic K$^+$ and voltage drive; argument clipped to $[-60,60]$ & $\theta$ clipped to $[0,1.5]$ \\
+Activation safeguard & Minimum target 0.55 after the implemented extracellular-K$^+$ wave criterion & Numerical/phenomenological safeguard \\
+Swelling target & $q=5r/(r+0.06)+0.20\operatorname{clip}(\theta,0,1.5)$; $s_\infty=1.10q/(1+q)$ & Bounded saturating law \\
+Swelling time constants & 12 s when increasing; 28 s when recovering & Piecewise relaxation \\
+ECS volume fraction & $\operatorname{clip}[\alpha_0(1-0.34s),0.08,0.20]$ with $s$ clipped to $[0,1.10]$ & Feeds back on transport \\
+Tortuosity & $\operatorname{clip}[\lambda_0(1+0.28s),1.0,4.8]$ with $s$ clipped to $[0,1.10]$ & Feeds back on transport \\
+Concentration clipping & K$^+_e$ [1,80]; Na$^+_e$/Cl$^-_e$ [20,170]; K$^+_i$ [20,160]; Na$^+_i$/Cl$^-_i$ [2,80] mM & Numerical safeguards \\
+Voltage clipping & $V_m\in[-95,35]$ mV & Numerical safeguard \\
+Stimulus & 1.2-mm 3D Euclidean radius; K$^+_e\ge22$ mM; Na$^+_e-10$ mM with 5-mM floor; $\theta\ge0.92$ & Initial condition only \\
+Arrival & First discrete sample at $t\ge0.5$ s with $V_m\ge-28$ mV & No temporal interpolation \\
+Ion boundary & No exterior-edge flux term & Natural zero-normal-flux condition \\
+Potential boundary/gauge & Natural zero-normal-flux; subtract mass-weighted mean after solve & Finite surface mesh \\
+Null-kernel randomization & Scrambled normals use fixed seed 13 & Reproducible orientation null \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Representative pathwise timing summary for the direct shoulder analysis. $\Delta T=T_{\mathrm{dipole}}-T_{\mathrm{no\ dipole}}$; positive values indicate later arrival under aligned coupling. Directional local speed is not reported because arrival time becomes non-monotonic in the outer post-fold region.}
+\label{tab:shoulder_summary}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Geometry-defined region & Mean $\Delta T$ (s) & Minimum $\Delta T$ (s) \\
+\midrule
+Pre-fold flatter region & 0.008 & 0.000 \\
+First shoulder & 0.012 & 0.000 \\
+First sulcal bank & $-0.050$ & $-0.100$ \\
+Fundus & 0.949 & $-2.049$ \\
+Opposite bank & 3.923 & 2.449 \\
+Second shoulder & 4.572 & 2.099 \\
+Post-fold flatter region & $-4.239$ & $-9.794$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Neither shoulder showed a material negative $\Delta T$ on the reference mesh or after halving the time step. A one-step negative fluctuation on a neighboring mesh was inconsistent across local-speed definitions. The direct analysis therefore supports the classification ``no shoulder-specific acceleration.''
+
+\clearpage
+\section*{Supplementary Figures}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{mechanistic_null_models.png}
+\caption{Orientation-specific null controls on the representative folded surface. The aligned dipole kernel produced a substantially larger cross-fold slowdown and delay increase than either the distance-only or scrambled-normal kernel.}
+\label{fig:null_models}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{mechanistic_virtual_electrode_waveforms.png}
+\caption{Virtual-electrode waveform readouts for the representative folded surface and flat control. Top panels show extracellular K$^+$ traces and bottom panels show recovered extracellular potential at matched readout locations. The aligned condition delays the downstream response on the folded surface while preserving bounded waveforms; flat-control traces are unchanged.}
+\label{fig:waveforms}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{mechanistic_dipole_sensitivity.png}
+\caption{Parameter sensitivity of the dipole term. Each panel varies one parameter ($V_0$, $m_{\mathrm{ed}}$, $\ell_d$, $d_c$, or $\gamma_d$) across a flat control plus low-, representative-, and high-severity folds. The flat control remains unchanged and every folded case retains positive slowing across the tested settings.}
+\label{fig:sensitivity}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{mechanistic_atlas_patch_qc.png}
+\caption{Atlas-based patch check. Left, the fsaverage6 left-hemisphere midthickness surface with 8 sulcal and 8 flatter patches overlaid on normalized sulcal depth. Right, slowdown distributions by category. Sulcal patches show predominantly positive slowdown and flatter patches predominantly negative slowdown.}
+\label{fig:atlas_sanity_check}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{matched_maps.pdf}
+\caption{Matched extracellular K$^+$ maps at 25\%, 50\%, and 75\% of the no-dipole E1--E2 traversal interval. Absolute maps share color limits. The bottom row shows signed concentration differences, defined as dipole aligned minus no dipole, on a zero-centered scale.}
+\label{fig:matched_maps}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{paired_kymographs.pdf}
+\caption{Paired cross-fold kymographs. The left and center panels show no-dipole and dipole-aligned extracellular K$^+$ with identical scales; the right panel shows the signed difference. Solid white and dashed black contours mark the no-dipole and dipole-aligned $V_m=-28$ mV fronts. Spatial position is cumulative three-dimensional distance along the fixed cross-fold path.}
+\label{fig:paired_kymographs}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{curvature_and_deltaT.pdf}
+\caption{Representative pathwise shoulder analysis. Unsmoothed arrival times, signed $\Delta T$, analytic signed curvature, and a local-speed sensitivity estimate are plotted along the geometry-defined cross-fold path. Region boundaries were fixed before condition differences were examined.}
+\label{fig:curvature_deltaT}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{regional_effect_summary.pdf}
+\caption{Region-level $\Delta T$ summary across the 12 deterministic folded geometries. Bars summarize mean region effects and ranges. The sign varies locally, but acceleration is not consistently localized to either shoulder.}
+\label{fig:regional_summary}
+\end{figure}
+
+\end{document}
